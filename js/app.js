@@ -82,23 +82,25 @@ const DATA_FILES = {
 
 /* Real photographs (grayscale + halftone), spread across pages, never crammed. */
 const PHOTOS = {
-  homeTop: { src: "assets/4.jpeg", alt: "Me sketching in a park", caption: "Trying my hand at sketching." },
-  homeLower: { src: "assets/10.png", alt: "On a footbridge in the woods", caption: "In the woods." },
-  blog: { src: "assets/9.jpeg", alt: "On the footbridge between Germany and Poland", caption: "Bridge between Poland and Germany." },
-  projects: { src: "assets/5.jpeg", alt: "A candid photograph", caption: "Somewhere away from the lab." },
-  contact: { src: "assets/2.jpeg", alt: "Childhood photo of me with my twin", caption: "me with my twin" }
+  homeTop: { src: "assets/4.webp", alt: "Me sketching in a park", caption: "Trying my hand at sketching." },
+  homeLower: { src: "assets/10.webp", alt: "On a footbridge in the woods", caption: "In the woods." },
+  blog: { src: "assets/9.webp", alt: "On the footbridge between Germany and Poland", caption: "Bridge between Poland and Germany." },
+  projects: { src: "assets/5.webp", alt: "A candid photograph", caption: "Somewhere away from the lab." },
+  contact: { src: "assets/2.webp", alt: "Childhood photo of me with my twin", caption: "me with my twin" }
 };
 
 /* Leftover frames, shown together in the Home archive (puzzle layout). */
 const ARCHIVE = [
-  { src: "assets/1.jpeg", alt: "A photograph from the archive" },
-  { src: "assets/8.jpeg", alt: "A photograph from the archive" },
-  { src: "assets/3.jpeg", alt: "A photograph from the archive" },
-  { src: "assets/6.jpeg", alt: "A photograph from the archive" },
-  { src: "assets/7.jpeg", alt: "A photograph from the archive" }
+  { src: "assets/1.webp", alt: "A photograph from the archive" },
+  { src: "assets/8.webp", alt: "A photograph from the archive" },
+  { src: "assets/3.webp", alt: "A photograph from the archive" },
+  { src: "assets/6.webp", alt: "A photograph from the archive" },
+  { src: "assets/7.webp", alt: "A photograph from the archive" }
 ];
 
 const state = { data: FALLBACK_DATA, route: "home", articleId: null };
+const imageCache = new Map();
+let renderToken = 0;
 
 const content = document.querySelector("#content");
 const mobileMenu = document.querySelector(".mobile-menu");
@@ -114,6 +116,7 @@ async function init() {
     history.replaceState(null, "", "#home");
   }
   renderRoute();
+  primeSiteImages();
 }
 
 async function loadData() {
@@ -153,8 +156,9 @@ function bindNavigation() {
   });
 }
 
-function renderRoute() {
+async function renderRoute() {
   const parsed = parseHash(window.location.hash);
+  const token = ++renderToken;
   state.route = parsed.route;
   state.articleId = parsed.articleId;
 
@@ -164,6 +168,9 @@ function renderRoute() {
   else if (state.route === "projects") html = renderProjects();
   else if (state.route === "contact") html = renderContact();
   else html = renderHome();
+
+  await preloadImages(getRouteImageSources(parsed));
+  if (token !== renderToken) return;
 
   content.innerHTML = `<div class="view">${html}</div>`;
   updateActiveNav(state.route);
@@ -179,6 +186,55 @@ function renderRoute() {
   });
   content.focus({ preventScroll: true });
   window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+}
+
+function getRouteImageSources({ route, articleId }) {
+  if (route === "blog" && !articleId) return [PHOTOS.blog.src];
+  if (route === "projects") return [PHOTOS.projects.src];
+  if (route === "contact") return [PHOTOS.contact.src];
+  if (route === "home") return [PHOTOS.homeTop.src, PHOTOS.homeLower.src, ...ARCHIVE.map((photo) => photo.src)];
+  return [];
+}
+
+function getAllSiteImageSources() {
+  return [
+    ...Object.values(PHOTOS).map((photo) => photo.src),
+    ...ARCHIVE.map((photo) => photo.src)
+  ];
+}
+
+function primeSiteImages() {
+  const start = () => preloadImages(getAllSiteImageSources());
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(start, { timeout: 2000 });
+  } else {
+    window.setTimeout(start, 600);
+  }
+}
+
+function preloadImages(srcs) {
+  return Promise.all(srcs.map(preloadImage));
+}
+
+function preloadImage(src) {
+  if (!src) return Promise.resolve();
+  if (imageCache.has(src)) return imageCache.get(src);
+
+  const promise = new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      if (typeof img.decode === "function") {
+        img.decode().catch(() => {}).finally(resolve);
+      } else {
+        resolve();
+      }
+    };
+    img.onerror = resolve;
+    img.src = src;
+  });
+
+  imageCache.set(src, promise);
+  return promise;
 }
 
 function parseHash(hash) {
@@ -205,7 +261,7 @@ function renderHome() {
 
   const figure = (photo, side) => `
     <figure class="cut cut--${side}">
-      <img src="${escapeAttribute(photo.src)}" alt="${escapeAttribute(photo.alt)}" loading="lazy">
+      <img src="${escapeAttribute(photo.src)}" alt="${escapeAttribute(photo.alt)}" loading="eager" decoding="async" fetchpriority="high">
       <figcaption class="cap">${escapeHtml(photo.caption)}</figcaption>
     </figure>`;
 
@@ -249,7 +305,7 @@ function renderHome() {
       <section class="block archive">
         <p class="label">Archive</p>
         <div class="archive-grid">
-          ${ARCHIVE.map((p) => `<figure class="archive-figure"><img src="${escapeAttribute(p.src)}" alt="${escapeAttribute(p.alt)}" loading="lazy"></figure>`).join("")}
+          ${ARCHIVE.map((p) => `<figure class="archive-figure"><img src="${escapeAttribute(p.src)}" alt="${escapeAttribute(p.alt)}" loading="eager" decoding="async"></figure>`).join("")}
         </div>
       </section>
     </section>
@@ -290,7 +346,7 @@ function renderBlog() {
       <p class="label">Blogs</p>
       <h1 class="lead">Research Notes and Working Ideas</h1>
       <figure class="cut cut--right cut--blog">
-        <img src="${escapeAttribute(PHOTOS.blog.src)}" alt="${escapeAttribute(PHOTOS.blog.alt)}" loading="lazy">
+        <img src="${escapeAttribute(PHOTOS.blog.src)}" alt="${escapeAttribute(PHOTOS.blog.alt)}" loading="eager" decoding="async" fetchpriority="high">
         <figcaption class="cap">${escapeHtml(PHOTOS.blog.caption)}</figcaption>
       </figure>
       <ul class="post-list">${rows}</ul>
@@ -412,7 +468,7 @@ function renderProjects() {
       <p class="label">Projects</p>
       <h1 class="lead">What I've built and published.</h1>
       <figure class="cut cut--right cut--work">
-        <img src="${escapeAttribute(PHOTOS.projects.src)}" alt="${escapeAttribute(PHOTOS.projects.alt)}" loading="lazy">
+        <img src="${escapeAttribute(PHOTOS.projects.src)}" alt="${escapeAttribute(PHOTOS.projects.alt)}" loading="eager" decoding="async" fetchpriority="high">
         <figcaption class="cap">${escapeHtml(PHOTOS.projects.caption)}</figcaption>
       </figure>
 
@@ -483,7 +539,7 @@ function renderContact() {
       <div class="contact-grid">
         <div class="contact-links">${links}</div>
         <figure class="cut cut--contact">
-          <img src="${escapeAttribute(PHOTOS.contact.src)}" alt="${escapeAttribute(PHOTOS.contact.alt)}" loading="lazy">
+          <img src="${escapeAttribute(PHOTOS.contact.src)}" alt="${escapeAttribute(PHOTOS.contact.alt)}" loading="eager" decoding="async" fetchpriority="high">
           ${PHOTOS.contact.caption ? `<figcaption class="cap">${escapeHtml(PHOTOS.contact.caption)}</figcaption>` : ""}
         </figure>
       </div>
