@@ -1,0 +1,23 @@
+[
+  {
+    "id": "tu-dresden",
+    "institution": "TU Dresden",
+    "degree": "MSc Computational Modeling and Simulation",
+    "period": "Oct 2025 to present",
+    "note": "Applied AI track, high performance computing"
+  },
+  {
+    "id": "university-of-mumbai",
+    "institution": "University of Mumbai",
+    "degree": "B.Tech Computer Engineering",
+    "period": "2021 to 2025",
+    "note": "Algorithms, ML, language models, computer vision"
+  },
+  {
+    "id": "pace",
+    "institution": "Pace Junior College",
+    "degree": "Higher secondary, Mumbai",
+    "period": "2019 to 2021",
+    "note": "Computer science, data structures, web"
+  }
+]

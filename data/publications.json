@@ -1,0 +1,29 @@
+[
+  {
+    "id": "topic-modeling",
+    "title": "Exploring Deep Learning Techniques for Topic Modeling of Natural Disaster Tweets",
+    "venue": "Springer Nature",
+    "year": "2025",
+    "blurb": "I compared LSA, LDA, BERT, and a LLaMA3 plus BERTopic pipeline on tweets from hurricanes, wildfires, and floods. The LLaMA3 pipeline with UMAP and HDBSCAN separated theme clusters better than every baseline.",
+    "tags": ["NLP", "BERTopic", "LLaMA3"],
+    "link": "https://link.springer.com/chapter/10.1007/978-981-96-5958-6_37"
+  },
+  {
+    "id": "f1-gnn",
+    "title": "Hybrid Predictive Modeling for F1 Races: Random Forest and Graph Neural Networks",
+    "venue": "Springer Nature",
+    "year": "2026",
+    "blurb": "A sequential Random Forest to GNN pipeline that reached a macro F1 of 0.81, ahead of a standalone GNN at 0.72 and logistic regression at 0.67. SMOTE and GridSearch fixed the class imbalance across sparse race data.",
+    "tags": ["GNNs", "Random Forest", "Sports analytics"],
+    "link": "https://link.springer.com/chapter/10.1007/978-981-96-8350-5_15"
+  },
+  {
+    "id": "sign-language",
+    "title": "Emotion-Aware Indian Sign Language Recognition: A Multimodal Approach",
+    "venue": "Educational Administration: Theory and Practice",
+    "year": "2024",
+    "blurb": "A real time system that reads sign and emotion at once, with a CNN at 79.22% for emotion and an LSTM at 98.12% for gestures, plus Google text to speech output across 5 Indian languages.",
+    "tags": ["Computer vision", "CNN", "LSTM"],
+    "link": "https://doi.org/10.53555/kuey.v30i6.7043"
+  }
+]

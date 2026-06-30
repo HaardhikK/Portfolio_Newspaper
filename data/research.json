@@ -1,0 +1,26 @@
+[
+  {
+    "id": "latent-comm",
+    "title": "Latent Communication for Multi-Trajectory Data Analysis Agents",
+    "date": "2026",
+    "blurb": "I tested whether data analysis agents can share hidden state instead of passing natural language. Latent coordination dropped decoded coordination tokens to 0 while text coordination grew past 2,600, with higher pass rates on short and medium tasks.",
+    "stack": ["Agents", "LLMs", "Evaluation"],
+    "link": "https://github.com/HaardhikK/latent-communication-for-multi-trajectory-data-analysis-agents"
+  },
+  {
+    "id": "medfiber",
+    "title": "MedFiber: Synthetic 3D Biomedical Fibre Segmentation",
+    "date": "Since 2025",
+    "blurb": "A pipeline that generates realistic 3D fibre volumes with voxel level labels using Blender physics, then segments them and scores with Dice, IoU, ARI, and object F1. It targets the labeled data scarcity that blocks production grade fibre segmentation.",
+    "stack": ["Blender", "3D vision", "Segmentation"],
+    "link": "https://github.com/HaardhikK/MedFiber"
+  },
+  {
+    "id": "federated-xai",
+    "title": "Federated Learning and Explainable AI for Tumor Prediction",
+    "date": "2024",
+    "blurb": "Private MRI tumor prediction across separate nodes with no raw data sharing. A federated ResNet50 and FFT model reached 96.07% accuracy, up from an 86.46% CNN baseline, with SHAP and LIME for clinical readability under HIPAA and GDPR.",
+    "stack": ["TF Federated", "ResNet50", "SHAP", "LIME"],
+    "link": "https://github.com/HaardhikK/Federated-learning-and-Explainable-Ai-based-Tumor-Prediction"
+  }
+]

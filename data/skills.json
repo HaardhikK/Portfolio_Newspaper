@@ -1,0 +1,22 @@
+{
+  "languages": {
+    "label": "Languages",
+    "items": ["Python (Advanced)", "C/C++", "JavaScript", "MATLAB"]
+  },
+  "ml_ai": {
+    "label": "ML and AI",
+    "items": ["PyTorch", "TensorFlow", "LLMs (Advanced)", "GNNs", "OpenCV", "LangChain", "Google ADK"]
+  },
+  "web": {
+    "label": "Web and Data",
+    "items": ["ReactJS", "Node.js", "Flask", "Three.js", "Tailwind CSS", "MongoDB", "MySQL", "Selenium"]
+  },
+  "tools": {
+    "label": "Tools",
+    "items": ["Docker", "AWS", "Git", "Kubernetes", "Codex", "Claude Code"]
+  },
+  "spoken": {
+    "label": "Spoken",
+    "items": ["English (C1)", "German (A1)"]
+  }
+}

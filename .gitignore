@@ -1,0 +1,21 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# Local-only source notes and verification captures
+screenshots/
+unrefined ideas/
+data/resume.md
+data/coverletter.md

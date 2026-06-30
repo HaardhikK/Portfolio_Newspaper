@@ -1,0 +1,42 @@
+[
+  {
+    "id": "spending-rail",
+    "title": "Spending Rail",
+    "date": "2026",
+    "blurb": "A banking layer for autonomous agents: each agent gets a scoped wallet, spend limits, risk aware credit, and one reconciliation layer. Selected for Phase 2 of the TinyFish Accelerator, backed by Mango Capital with a $2M seed pool.",
+    "stack": ["Agents", "Fintech infra", "Python"],
+    "link": "https://x.com/Tiny_Fish/status/2038492752397361364"
+  },
+  {
+    "id": "dresden-live",
+    "title": "Dresden-Live",
+    "date": "2026",
+    "blurb": "A 3D transit dashboard in Three.js and Mapbox GL that shows live Dresden VVO telemetry with sub second updates. Async polling and buffering keep it smooth under API jitter. Recognized in the kiliankoe/vvo project.",
+    "stack": ["Three.js", "Mapbox GL", "Real time"],
+    "link": "https://github.com/HaardhikK/Dresden-Live"
+  },
+  {
+    "id": "arthantar",
+    "title": "Arthantar",
+    "date": "2025",
+    "blurb": "My bachelor thesis: a contextual translation framework that uses coreference, fallback gender inference, and dynamic knowledge graphs so smaller models can outperform larger ones without retraining. Built around efficient inference and tested across Mistral, LLaMA3, and Gemma.",
+    "stack": ["LLaMA3", "Knowledge graphs", "FastCoref", "spaCy"],
+    "link": "https://github.com/HaardhikK/Arthantar"
+  },
+  {
+    "id": "automated-book",
+    "title": "Automated Book Publication",
+    "date": "2025",
+    "blurb": "An AI publishing workflow: Playwright scraping, LLaMA3 and Deepseek-R1 rewriting, a Streamlit human review stage, FAISS retrieval, and an RL style loop that ranks chapter versions by quality.",
+    "stack": ["Playwright", "LLaMA3", "FAISS", "Streamlit"],
+    "link": "https://github.com/HaardhikK/Automated-Book-Publication"
+  },
+  {
+    "id": "webscraping",
+    "title": "Web Scraping and Summarization Engine",
+    "date": "2024",
+    "blurb": "Scraping pipelines across 155 sites with Selenium and OCR based CAPTCHA handling, then GPT-4 to structure headings, metadata, and image links into analysis ready datasets.",
+    "stack": ["Selenium", "PyTesseract", "GPT-4"],
+    "link": "https://github.com/HaardhikK/Webscraping"
+  }
+]
