@@ -54,69 +54,34 @@ The clean way past the long horizon limit is to stop relying on the training fre
 
 Both need a 24 GB or larger GPU I do not have access to right now, so I paused here. Everything above was done on my laptop and on free Kaggle time, taken as far as it can fairly go.
 
-## Update - July 3, 2026: clean cache holds through 7 stages, but 9 stages is gated off
+## Update - July 4, 2026: the 7 step collapse was mostly a cache problem
 
-After the first version of this writeup, I ran a forensic pass on the long horizon failure because the drop looked too sharp to trust at face value. The original `C = 0.20` result did reproduce, but it was not the cleanest interpretation of latent communication.
+I went back to the long result because `C = 0.20` looked too sharp to leave alone. The collapse reproduced, but the reason was less mysterious than "latent communication fails at seven steps."
 
-The old latent path was accidentally building a messy KV cache. At every stage it appended planner system text, the full task prompt, the stage line, and then latent steps. By coder decode on a 7 stage task, the cache contained many near duplicate copies of the full task. The original result therefore mixed two things: text versus latent communication, and clean context versus duplicated or polluted latent cache.
+The old latent path was building a messy KV cache. Every stage kept adding the planner system text, the full task prompt, the stage line, and then latent steps. By the time the coder decoded, the cache had many near duplicate copies of the same task. That means the first long result mixed two things: latent communication and bad cache construction.
 
-The direct ablation made that visible.
+The useful result is this:
 
-| Variant | Runs | Final pass | Median cache length | Readout |
-|---|---:|---:|---:|---|
-| Old latent path, exact reproduction | 15 | 3/15 = 0.20 | 2828 | Collapse reproduced |
-| Deduplicated latent cache | 15 | 11/15 = 0.73 | 532 | Clean cache recovered most of the drop |
-| Text multi agent baseline | 15 | 12/15 = 0.80 | 0 | Text still held slightly better |
+| Test | Result | Takeaway |
+|---|---:|---|
+| Old latent path | 3/15 | Collapse reproduced |
+| Clean latent cache | 11/15 | Most of the drop disappeared |
+| Text baseline | 12/15 | Still slightly ahead |
 
-The clean cache latent version beat the old latent path by `+0.533` final pass rate (`p = 0.0092`) and was statistically close to the text baseline while still using zero decoded coordination tokens. The better interpretation is:
+So the better read is that clean-cache latent coordination is competitive with text through the measured 7 step horizon, while still using zero decoded coordination tokens. Cache construction is not a small implementation detail here; it is one of the main variables.
 
-> The 7 step failure was mostly a cache construction problem, not proof that latent coordination intrinsically fails at 7 stages.
+I also checked whether the latent steps themselves are definitely carrying useful information. The answer is still cautious. With more repeats, clean latent reached `25/30`, while a no-latent-step version reached `19/30`. That is promising, but not strong enough at this sample size for me to claim the hidden vectors alone are proven to carry the plan. A tiny greedy text-anchor variant did worse (`17/30`), mostly because the anchors polluted the cache with truncated or wrong text.
 
-The repair path also taught a useful lesson. It is good at fixing concrete runtime crashes, such as missing imports or serialization errors. It is much weaker when the generated Python is valid but has already chosen the wrong scorer contract or formula. That matters because many long horizon failures were semantic contract misses, not empty code.
+I tried to push the benchmark to 9 steps too, but stopped at the control gate. The single-agent baseline only reached `9/15` after the one allowed re-authoring pass, with campaign tasks fine and orders/sensor tasks still shaky. Since the control did not qualify, I did not run the text-versus-latent comparison at 9 steps.
 
-I also tested whether the latent steps themselves were clearly doing useful work. The answer is cautious.
+So the update is narrower than the first version, but cleaner:
 
-| Variant | Runs | Final pass | Readout |
-|---|---:|---:|---|
-| Deduplicated latent cache | 30 | 25/30 = 0.83 | Best clean latent path |
-| No latent step | 30 | 19/30 = 0.63 | Directionally worse, not confirmed |
-| Greedy anchor text | 30 | 17/30 = 0.57 | Anchors harmed |
+- the scary 7 step latent collapse was mostly duplicated prompt/cache pollution;
+- clean-cache latent recovers to near the text baseline at 7 steps;
+- the latent-vector contribution is promising, not proven;
+- 9 steps is blocked by benchmark/model capability for now, not by a fair coordination-channel comparison.
 
-The deduplicated latent path stayed directionally better than the no latent step version, but the pooled test did not confirm the latent step contribution at this sample size (`p = 0.1432`). The greedy anchor variant significantly harmed performance versus clean latent (`p = 0.0470`). In the artifacts, those tiny decoded anchors often parroted or truncated stage text; in one orders task they injected the wrong revenue formula. So this is not a general argument against grounding. It only says this particular greedy anchor implementation polluted the cache.
-
-The cache story also showed a dose response among latent step variants.
-
-| Variant | Latent steps? | Median cache length | Final pass |
-|---|---|---:|---:|
-| Deduplicated latent cache | yes | 532 | 0.83 |
-| Greedy anchor text | yes | 1258 | 0.57 |
-| Old latent path | yes | 2828 | 0.20 |
-| No latent step | no | 504 | 0.63 |
-
-The dose response is strongest among variants that actually use latent steps. The no latent step variant sits off the curve: short cache, but lower accuracy than clean latent. So duplicated text drives much of the harm, while cache composition and latent updates still matter.
-
-I then tried to push the horizon from 7 stages to 9 stages. That stopped at the control gate. The pre registered rule was that the single agent had to pass at least `13/15` before any B versus C comparison could be interpreted. The final bounded re authoring pass ran on a Tesla T4 after the P100 guard correctly rejected an earlier Kaggle assignment before any rows.
-
-| Xlong gate | Rows | Result | Decision |
-|---|---:|---|---|
-| P100 guard check | 0 | Not run | Kaggle assigned P100, so the GPU guard stopped before model or rows |
-| Final A only re authoring pass | 15 | A single = 9/15 final, 7/15 first attempt | A gate failed; B/C not run |
-
-The family split was uneven: campaign passed `5/5`, orders passed `2/5`, and sensor passed `2/5`. Per the hard rule, I did not run the text or latent xlong matrix, did not launch the 11 stage branch, and did not tune again. The 9 stage result is therefore not evidence that clean cache latent tracks text at 9 stages, and not evidence that it collapses against text at 9 stages. The binding constraint is benchmark construction and model capability at 9 stages, not the coordination channel.
-
-So the current claim is narrower and cleaner:
-
-- Short and medium are still the clean positive result from the original post.
-- The scary 7 stage `C = 0.20` collapse was mostly duplicated prompt and cache pollution.
-- With a clean cache, training free latent communication is competitive with text through the measured 7 stage planning horizon.
-- The latent vector contribution is promising but not proven on its own yet.
-- The 9 stage xlong question is closed for this phase because the single agent control did not qualify.
-
-The next real test should be a per stage `execute -> observe -> continue` benchmark, where latent state has to survive many tool boundaries. A trained RecursiveMAS style latent module only becomes meaningful after that benchmark shows exactly what the latent vectors need to carry.
-
-In other words:
-
-> Clean cache latent communication can be competitive through the measured 7 stage planning horizon, but cache construction is a first order design variable. The 9 stage result is not a coordination channel result; it is a benchmark and model capability gate failure.
+The next useful benchmark is still the same one: a per stage `execute -> observe -> continue` loop, where latent state has to survive repeated tool boundaries instead of one final code execution.
 
 ## References
 

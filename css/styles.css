@@ -719,6 +719,9 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
   .post-row .post-meta { display: none; }
 
   .post-body thead th { white-space: normal; }
+  .post-body table { font-size: 0.86rem; }
+  .post-body thead th,
+  .post-body tbody td { padding-right: 10px; }
 
   .archive-grid { column-count: 2; }
 
