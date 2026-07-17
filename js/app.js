@@ -188,18 +188,26 @@ async function renderRoute() {
   window.scrollTo({ top: 0, left: 0, behavior: "instant" });
 }
 
+function shouldRenderArchive() {
+  return !("matchMedia" in window) || !window.matchMedia("(max-width: 720px)").matches;
+}
+
 function getRouteImageSources({ route, articleId }) {
   if (route === "blog" && !articleId) return [PHOTOS.blog.src];
   if (route === "projects") return [PHOTOS.projects.src];
   if (route === "contact") return [PHOTOS.contact.src];
-  if (route === "home") return [PHOTOS.homeTop.src, PHOTOS.homeLower.src, ...ARCHIVE.map((photo) => photo.src)];
+  if (route === "home") {
+    const archiveSources = shouldRenderArchive() ? ARCHIVE.map((photo) => photo.src) : [];
+    return [PHOTOS.homeTop.src, PHOTOS.homeLower.src, ...archiveSources];
+  }
   return [];
 }
 
 function getAllSiteImageSources() {
+  const archiveSources = shouldRenderArchive() ? ARCHIVE.map((photo) => photo.src) : [];
   return [
     ...Object.values(PHOTOS).map((photo) => photo.src),
-    ...ARCHIVE.map((photo) => photo.src)
+    ...archiveSources
   ];
 }
 
@@ -271,6 +279,13 @@ function renderHome() {
       <span class="row-main"><strong>${escapeHtml(e.institution)}</strong><span>${escapeHtml(e.degree)}</span></span>
     </li>`).join("");
   const skillRows = renderSkillRows(skills);
+  const archiveHtml = shouldRenderArchive() ? `
+      <section class="block archive">
+        <p class="label">Archive</p>
+        <div class="archive-grid">
+          ${ARCHIVE.map((p) => `<figure class="archive-figure"><img src="${escapeAttribute(p.src)}" alt="${escapeAttribute(p.alt)}" loading="eager" decoding="async"></figure>`).join("")}
+        </div>
+      </section>` : "";
 
   return `
     <section class="home">
@@ -302,12 +317,7 @@ function renderHome() {
         <ul class="rows">${skillRows}</ul>
       </section>` : ""}
 
-      <section class="block archive">
-        <p class="label">Archive</p>
-        <div class="archive-grid">
-          ${ARCHIVE.map((p) => `<figure class="archive-figure"><img src="${escapeAttribute(p.src)}" alt="${escapeAttribute(p.alt)}" loading="eager" decoding="async"></figure>`).join("")}
-        </div>
-      </section>
+      ${archiveHtml}
     </section>
   `;
 }

@@ -209,6 +209,7 @@ button { font: inherit; }
 }
 .rows li:first-child { border-top: 0; }
 .education-block .rows li:last-child { border-bottom: 1px solid var(--rule); }
+.stack-block .rows li:last-child { border-bottom: 1px solid var(--rule); }
 
 .row-when { padding-top: 2px; }
 
@@ -723,7 +724,7 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
   .post-body thead th,
   .post-body tbody td { padding-right: 10px; }
 
-  .archive-grid { column-count: 2; }
+  .archive { display: none; }
 
   .contact-grid { grid-template-columns: 1fr; gap: 24px; }
   .contact-grid .cut { float: none; width: clamp(180px, 64%, 260px); margin: 1.2rem 0; }
