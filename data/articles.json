@@ -33,6 +33,16 @@
     "domain":  ["Vision and touch", "3D reconstruction", "Speculative decoding"]
   },
   {
+    "id": "alvalta",
+    "title": "Alvalta: three equations in one field",
+    "dek": "Three mathematical point-creatures share a dark field, where simple motion begins to feel like presence.",
+    "date": "July 2026",
+    "readTime": "2 min",
+    "tags": ["Generative art", "Artificial life", "Mathematical creatures"],
+    "kind": "Project note",
+    "domain": ["Generative art", "Artificial life", "Mathematical creatures"]
+  },
+  {
     "id": "mood-tokens",
     "title": "Music for language models: mood tokens for hidden computation",
     "dek": "Training a small family of control tokens that steer not how much a model thinks, but how it thinks.",
