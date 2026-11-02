@@ -25,7 +25,7 @@ function visibility() {
 async function start() {
   if (typeof Worker !== 'undefined' && typeof canvas.transferControlToOffscreen === 'function') {
     try {
-      worker = new Worker(new URL('./creature-worker.js?v=mobile-fine-motion', import.meta.url), { type: 'module' });
+      worker = new Worker(new URL('./creature-worker.js?v=mobile-pace-paths', import.meta.url), { type: 'module' });
       const options = settings();
       const offscreen = canvas.transferControlToOffscreen();
       transferred = true;
@@ -50,7 +50,7 @@ async function start() {
     }
   }
   if (!worker) {
-    const { createCreatureEngine } = await import('./creature-engine.js?v=mobile-fine-motion');
+    const { createCreatureEngine } = await import('./creature-engine.js?v=mobile-pace-paths');
     fallback = createCreatureEngine(canvas, settings());
   }
   performance.mark('creatures:ready');

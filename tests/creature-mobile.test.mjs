@@ -15,14 +15,14 @@ function step(mobile, wallTime, reduced = false) {
   return result;
 }
 
-test('mobile body clock is four times slower without slowing the render cadence', () => {
+test('mobile body clock is 50% faster than the previous gentle setting', () => {
   const { travel, body } = step(true, 1 / 60);
-  assert.equal(body, travel * 0.25);
+  assert.equal(body, travel * 0.25 * 1.5);
   assert.equal(step(false, 1 / 60).body, 1 / 60);
 });
 
 test('late mobile frames cannot cause a large body animation jump', () => {
-  assert.equal(step(true, 0.1).body, 1 / 120);
+  assert.equal(step(true, 0.1).body, 1 / 80);
   assert(step(true, 1 / 60, true).body < step(true, 1 / 60).body);
 });
 
