@@ -1,6 +1,6 @@
 /* ==================================================================
    Haardhik Kunder — minimal monochrome portfolio
-   Times New Roman, black ink on cream. Small type, lots of air.
+   Times New Roman, black ink on cream.
    ================================================================== */
 
 :root {
@@ -13,7 +13,6 @@
   --serif: "Times New Roman", Times, Georgia, serif;
 
   --masthead-h: 88px;
-  --rail-w: 188px;
   --measure: 760px;
 }
 
@@ -25,7 +24,6 @@ html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
-  padding-left: var(--rail-w);
   min-height: 100vh;
   color: var(--ink);
   background: var(--paper);
@@ -54,7 +52,7 @@ button { font: inherit; }
 .mobile-menu {
   font-family: var(--serif);
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0;
   font-size: 0.66rem;
   color: var(--ink-soft);
 }
@@ -77,18 +75,17 @@ button { font: inherit; }
 /* ------------------------------ Masthead ------------------------------ */
 
 .masthead {
-  position: fixed;
-  inset: 0 0 auto 0;
+  position: sticky;
+  top: 0;
   z-index: 20;
-  height: var(--masthead-h);
-  padding: 0 32px 0 calc(var(--rail-w) + 32px);
+  padding: 12px 18px 4px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
   background: var(--paper);
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 0;
 }
 
 .wordmark {
@@ -103,6 +100,37 @@ button { font: inherit; }
   margin: 4px 0 0;
 }
 
+.site-nav {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.site-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 36px;
+  padding: 4px 10px;
+  font-family: var(--serif);
+  font-size: 1rem;
+  line-height: 1.25;
+  text-decoration: none;
+  letter-spacing: 0;
+}
+
+.site-nav a:hover,
+.site-nav a:focus-visible,
+.site-nav a.is-active {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+
+.site-nav a.is-active { font-weight: 700; }
+
+/* Previous sidebar styles; the markup is commented out in index.html. */
 /* ----------------------------- Section rail ---------------------------- */
 
 .section-rail {
@@ -116,9 +144,9 @@ button { font: inherit; }
 }
 
 .section-rail__label {
-  margin: 0 0 22px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--rule);
+  margin: 0 0 18px;
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .rail-link {
@@ -157,8 +185,8 @@ button { font: inherit; }
 .paper {
   width: min(100%, var(--measure));
   min-height: calc(100vh - var(--masthead-h));
-  margin: var(--masthead-h) auto 0;
-  padding: 52px 32px 88px;
+  margin: 0 auto;
+  padding: 24px 28px 56px;
   outline: none;
 }
 
@@ -176,7 +204,7 @@ button { font: inherit; }
   font-weight: 700;
   font-size: 1.7rem;
   line-height: 1.18;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   max-width: 22ch;
 }
 
@@ -192,9 +220,9 @@ button { font: inherit; }
 
 .block {
   clear: both;
-  margin-top: 2.6rem;
-  padding-top: 1.2rem;
-  border-top: 1px solid var(--rule);
+  margin-top: 3rem;
+  padding-top: 0;
+  border-top: 0;
 }
 
 /* simple two-column rows (education, skills) */
@@ -204,12 +232,9 @@ button { font: inherit; }
   display: grid;
   grid-template-columns: 150px 1fr;
   gap: 16px;
-  padding: 12px 0;
-  border-top: 1px solid var(--rule);
+  padding: 7px 0;
+  border-top: 0;
 }
-.rows li:first-child { border-top: 0; }
-.education-block .rows li:last-child { border-bottom: 1px solid var(--rule); }
-.stack-block .rows li:last-child { border-bottom: 1px solid var(--rule); }
 
 .row-when { padding-top: 2px; }
 
@@ -247,10 +272,10 @@ button { font: inherit; }
 
 /* ------------------------------- Home --------------------------------- */
 
-.prose { margin-top: 1.8rem; }
-.prose--after { margin-top: 2.8rem; }
+.prose { margin-top: 1.5rem; }
+.prose--after { margin-top: 2.5rem; }
 .prose::after { content: ""; display: block; clear: both; }
-.prose p { margin: 0 0 1.1rem; line-height: 1.72; }
+.prose p { margin: 0 0 0.9rem; line-height: 1.68; }
 .prose p:last-child { margin-bottom: 0; }
 
 /* archive: leftover frames arranged like puzzle pieces (masonry), with air */
@@ -279,24 +304,29 @@ button { font: inherit; }
 
 .blog .cut--blog { width: clamp(150px, 24%, 200px); margin-top: 1.4rem; }
 
-.post-list { margin: 1.4rem 0 0; padding: 0; list-style: none; }
+.blog { max-width: 47rem; }
 
-.post-row { border-top: 1px solid var(--rule); }
-.post-row:first-child { border-top: 0; }
-.post-row:last-child { border-bottom: 1px solid var(--rule); }
+.post-list {
+  display: grid;
+  gap: 2.1rem;
+  margin: 1.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post-row { border: 0; }
 
 .post-row a {
   display: block;
-  padding: 1.2rem 0;
+  padding: 0;
   text-decoration: none;
 }
-.post-row:first-child a { padding-top: 0; }
 
-.post-meta { display: block; margin-bottom: 0.5rem; }
+.post-meta { display: block; margin-bottom: 0.35rem; }
 
 .post-title {
   display: block;
-  font-size: 1.4rem;
+  font-size: 1.32rem;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -304,7 +334,7 @@ button { font: inherit; }
 
 .post-dek {
   display: block;
-  margin-top: 0.4rem;
+  margin-top: 0.35rem;
   max-width: 60ch;
   color: var(--ink-soft);
   font-size: 1rem;
@@ -320,11 +350,11 @@ button { font: inherit; }
 }
 
 /* article reading view — narrow, airy, interlatent-like */
-.post { max-width: 38em; margin: 0 auto; }
+.post { max-width: 44em; margin: 0; }
 
 .back {
   display: inline-block;
-  margin-bottom: 1.8rem;
+  margin-bottom: 1.25rem;
   text-decoration: none;
 }
 .back:hover, .back:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
@@ -379,13 +409,13 @@ button { font: inherit; }
 .post-loading code { font-style: normal; }
 
 /* rendered markdown body */
-.post-body { margin-top: 2.2rem; }
+.post-body { margin-top: 1.8rem; }
 .post-body > *:first-child { margin-top: 0; }
 .post-body p { margin: 0 0 1.3rem; line-height: 1.78; }
 
 .post-body h2 {
   margin: 2.6rem 0 0.9rem;
-  font-size: 1.3rem;
+  font-size: 1.38rem;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -443,9 +473,7 @@ button { font: inherit; }
 .post-body pre code { background: none; border: 0; padding: 0; }
 
 .post-body hr {
-  margin: 2.4rem 0;
-  border: 0;
-  border-top: 1px solid var(--rule);
+  display: none;
 }
 
 /* tables, kept minimal */
@@ -498,6 +526,13 @@ button { font: inherit; }
   line-height: 1.45;
 }
 
+.kaomoji {
+  white-space: nowrap;
+  font-family: "Segoe UI Symbol", "Yu Gothic UI", "Meiryo", sans-serif;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
 /* wide tables scroll inside the column instead of overflowing the page */
 .table-scroll {
   width: 100%;
@@ -527,10 +562,10 @@ button { font: inherit; }
   display: grid;
   grid-template-columns: 110px 1fr;
   gap: 20px;
-  padding: 1.2rem 0;
-  border-top: 1px solid var(--rule);
+  padding: 0;
+  border-top: 0;
 }
-.item:first-child { border-top: 0; }
+.item + .item { margin-top: 1.75rem; }
 
 .item-when { padding-top: 4px; line-height: 1.5; }
 
@@ -579,10 +614,10 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
 
 .contact-grid {
   display: grid;
-  grid-template-columns: 1fr clamp(150px, 26%, 200px);
-  gap: 36px;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 28px;
   align-items: start;
-  margin-top: 2.4rem;
+  margin-top: 1.5rem;
 }
 
 .contact-links { display: flex; flex-direction: column; }
@@ -592,12 +627,11 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
   justify-content: space-between;
   align-items: baseline;
   gap: 16px;
-  padding: 0.95rem 0;
-  border-top: 1px solid var(--rule);
+  padding: 0.65rem 0;
+  border: 0;
   text-decoration: none;
 }
-.contact-row:first-child { border-top: 0; }
-.contact-row:last-child { border-bottom: 1px solid var(--rule); }
+.contact-row + .contact-row { margin-top: 0.25rem; }
 
 .contact-v { font-size: 1.05rem; }
 
@@ -619,7 +653,6 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
 /* ============================== Responsive ============================= */
 
 @media (max-width: 980px) {
-  :root { --rail-w: 168px; }
   .item { grid-template-columns: 90px 1fr; gap: 16px; }
   .rows li { grid-template-columns: 130px 1fr; }
 }
@@ -628,14 +661,14 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
   :root { --masthead-h: 62px; }
 
   body { padding-left: 0; }
-  body.is-menu-open { overflow: hidden; }
 
   .masthead {
-    height: var(--masthead-h);
-    padding: 0 16px;
+    padding: 12px 14px 2px;
   }
   .wordmark { font-size: 1.4rem; }
-  .masthead__meta { display: none; }
+  .masthead__meta { font-size: 0.6rem; letter-spacing: 0; }
+  .site-nav { gap: 0; margin-top: 2px; }
+  .site-nav a { min-height: 44px; padding: 4px 10px; }
 
   .mobile-menu {
     position: fixed;
@@ -648,8 +681,6 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
     min-height: 40px;
     padding: 0 16px;
     border: 0;
-    border-top: 1px solid var(--ink);
-    border-bottom: 1px solid var(--ink);
     background: var(--paper);
     color: var(--ink);
   }
@@ -673,7 +704,7 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
     padding: 8px 18px 18px;
     overflow: hidden auto;
     border-right: 0;
-    border-bottom: 1px solid var(--ink);
+    border-bottom: 0;
     clip-path: inset(0 0 100% 0);
     visibility: hidden;
     pointer-events: none;
@@ -695,8 +726,8 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
 
   .paper {
     width: 100%;
-    margin: calc(var(--masthead-h) + 40px) 0 0;
-    padding: 30px 18px 64px;
+    margin: 0 auto;
+    padding: 18px 18px 48px;
   }
 
   /* keep photos floated and small so text still wraps them on mobile */
@@ -717,7 +748,26 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
   .item { display: block; }
   .item-when { display: block; padding-top: 0; margin-bottom: 0.25rem; }
 
-  .post-row .post-meta { display: none; }
+  .post-row .post-meta { display: block; }
+  .post-row .post-kind { display: none; }
+
+  .home .cut {
+    float: none;
+    clear: both;
+    width: min(100%, 220px);
+    margin: 1.1rem auto 1.4rem;
+  }
+
+  .blog .cut--blog {
+    float: none;
+    clear: both;
+    width: min(100%, 160px);
+    margin: 1rem 0 1.5rem;
+  }
+
+  .work .block { margin-top: 3.5rem; }
+  .work .item + .item { margin-top: 2rem; }
+  .work .tags { display: none; }
 
   .post-body thead th { white-space: normal; }
   .post-body table { font-size: 0.86rem; }
@@ -731,4 +781,5 @@ a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; tex
   .contact { padding-bottom: 5rem; }
 
   .post-headline { font-size: 1.7rem; }
+  .post-body h2 { font-size: 1.24rem; }
 }

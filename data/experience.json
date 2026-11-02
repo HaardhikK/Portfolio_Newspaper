@@ -1,5 +1,12 @@
 [
   {
+    "id": "snackz",
+    "role": "AI Engineering (Working Student)",
+    "org": "Snackz",
+    "date": "2026",
+    "blurb": "Berlin, Germany (remote)\nBuild research agents and multimodal workflows on Gemini Flash.\nUse A/B testing to cut costs 20-70% and speed up processing 3x."
+  },
+  {
     "id": "concetto",
     "role": "Web Development Intern",
     "org": "Concetto Media",

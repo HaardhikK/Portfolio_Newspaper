@@ -12,10 +12,10 @@ const FALLBACK_DATA = {
   profile: {
     name: "Haardhik Ratnakar Kunder",
     meta: "kunderhaardhik@gmail.com · Dresden, Germany",
-    tagline: "I build AI systems, chase strange questions, and occasionally pretend this was the plan.",
-    intro: "My interests sit around LLM architecture, agents, AI in medicine, and autodiscovery, especially systems that can run parts of a research loop on their own. I keep drifting toward robotics and AI alignment because they make the same question harder: how do you get models to act usefully in a world that is messy, physical, and not written like a benchmark?",
+    tagline: "I build AI systems, chase strange questions and pretend that was the plan.",
+    intro: "My interests sit around LLM architecture and agents, AI in medicine and autodiscovery, the idea of systems that can run a research loop on their own. I'm slowly steering toward robotics and AI alignment keeps climbing higher on my list.",
     intro2: "A lot of what I work on starts as a question I cannot put down. How should agents share what they know without burying each other in text, when should a model slow down and actually think, how do you learn from data that no one had time to label. Some of those questions become blog notes, and a few grow into projects.",
-    intro3: "A project close to me is Spending Rail, a banking layer for autonomous agents picked for Phase 2 of the TinyFish Accelerator, backed by Mango Capital with access to a 2 million dollar seed pool. I also spend a probably unreasonable amount of time on AI Twitter, YouTube talks, newsletters, and paper threads, mostly because I want to know what is changing and understand as much of it as I can.",
+    intro3: "A project close to me is Spending Rail, a banking layer for autonomous agents picked for Phase 2 of the TinyFish Accelerator, backed by Mango Capital with access to a 2 million dollar seed pool. I'm also building Val, a local AI companion on an old phone. I also spend an unreasonable amount of time on AI Twitter, YouTube talks, newsletters, and paper threads, mostly because I want to know what is changing and understand as much of it as I can.",
     interests: "Lately I care more about making models think well than making them bigger. My thesis, Arthantar, was built around that idea: smaller language models can beat larger ones on hard translation when the framework gives them coreference, gender, and graph context first. My newer work looks at agents coordinating through hidden states instead of long text messages, and an earlier paper of mine used topic models to read disaster tweets.",
     interests2: "When the research loop gets too loud, I usually end up sketching, revisiting a Beyblade idea, or watching a dense talk that sends me back into my notes. The serious and non-serious parts are not fully separate; both are me trying to understand why a system behaves the way it does.",
     hobbies: "Away from the screen, my favourite anime is Steins;Gate and my favourite manga is Oyasumi PunPun. The rest of my downtime goes to drawing, small mechanical obsessions, and keeping an eye on where AI is headed next.",
@@ -50,6 +50,7 @@ const FALLBACK_DATA = {
     { id: "sign-language", title: "Emotion-Aware Indian Sign Language Recognition: A Multimodal Approach", venue: "Educational Administration: Theory and Practice", year: "2024", blurb: "A real time system that reads sign and emotion at once, with a CNN at 79.22% for emotion and an LSTM at 98.12% for gestures, plus Google text to speech output across 5 Indian languages.", tags: ["Computer vision", "CNN", "LSTM"], link: "https://doi.org/10.53555/kuey.v30i6.7043" }
   ],
   experience: [
+    { id: "snackz", role: "AI Engineering (Working Student)", org: "Snackz", date: "2026", blurb: "Berlin, Germany (remote)\nBuild research agents and multimodal workflows on Gemini Flash.\nUse A/B testing to cut costs 20-70% and speed up processing 3x." },
     { id: "concetto", role: "Web Development Intern", org: "Concetto Media", date: "2023", blurb: "Built a full stack site end to end for an institution serving 15,000+ students, and improved SEO to lift organic traffic by 40%." }
   ],
   skills: {
@@ -60,6 +61,7 @@ const FALLBACK_DATA = {
     spoken: { label: "Spoken", items: ["English (C1)", "German (A1)"] }
   },
   articles: [
+    { id: "val-local-companion", title: "Val: the robot already in your drawer", dek: "A seven-year-old Android phone turned into an offline robot by using every sensor, three local models, and no cloud.", date: "October 2026", readTime: "4 min", tags: ["Edge AI", "Local LLMs", "Human-computer interaction"], kind: "Project note", domain: ["Edge AI", "Local LLMs", "Human-computer interaction"] },
     { id: "latent-coordination", title: "Latent versus text coordination for code executing agents", dek: "Can analysis agents coordinate by sharing hidden states instead of talking in text? Mostly yes, until the chain gets long.", date: "Jun 2026", readTime: "6 min", tags: ["Agents", "LLMs"], kind: "Research note", note: "An early research note with a working prototype. Still taking shape.", domain: ["Multi agent systems", "Latent communication", "Closed loop discovery"] },
     { id: "imprint", title: "Exogenous Sensorimotor Imprint", dek: "A third question to sit beside empowerment and homeostasis: how much of an agent's future is being written by sources it cannot steer?", date: "Jun 2026", readTime: "10 min", tags: ["Agency", "Information theory"], kind: "Research note", note: "An early theoretical note. Not fully formalized yet, and openly so.", domain: ["Empowerment", "Homeostasis", "Intrinsic motivation"] },
     { id: "right-under-contact", title: "Speculative Decoding for Contact-Aware Robotics", dek: "Judging a vision and touch reconstruction by how it behaves under a grasp, not by how closely it matches the average shape.", date: "May 2026", readTime: "6 min", tags: ["Robotics", "3D", "Touch"], kind: "Research note", note: "An early research note, still taking shape.", domain: ["Vision and touch", "3D reconstruction", "Speculative decoding"] },
@@ -104,14 +106,11 @@ const imageCache = new Map();
 let renderToken = 0;
 
 const content = document.querySelector("#content");
-const mobileMenu = document.querySelector(".mobile-menu");
-const rail = document.querySelector("#section-rail");
 
 init();
 
 async function init() {
   state.data = await loadData();
-  bindNavigation();
   window.addEventListener("hashchange", renderRoute);
   if (!window.location.hash) {
     history.replaceState(null, "", "#home");
@@ -137,24 +136,6 @@ async function loadData() {
     console.info("Using embedded data fallback.", error);
     return FALLBACK_DATA;
   }
-}
-
-function bindNavigation() {
-  mobileMenu.addEventListener("click", () => {
-    const isOpen = document.body.classList.toggle("is-menu-open");
-    mobileMenu.setAttribute("aria-expanded", String(isOpen));
-  });
-  rail.addEventListener("click", (event) => {
-    if (!event.target.closest("a")) return;
-    document.body.classList.remove("is-menu-open");
-    mobileMenu.setAttribute("aria-expanded", "false");
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      document.body.classList.remove("is-menu-open");
-      mobileMenu.setAttribute("aria-expanded", "false");
-    }
-  });
 }
 
 async function renderRoute() {
@@ -255,7 +236,7 @@ function parseHash(hash) {
 }
 
 function updateActiveNav(route) {
-  document.querySelectorAll(".rail-link").forEach((link) => {
+  document.querySelectorAll(".site-nav a").forEach((link) => {
     const active = link.dataset.route === route;
     link.classList.toggle("is-active", active);
     if (active) link.setAttribute("aria-current", "page");
@@ -290,7 +271,6 @@ function renderHome() {
 
   return `
     <section class="home">
-      <p class="label">Home</p>
       <h1 class="lead">${escapeHtml(profile.tagline)}</h1>
 
       <div class="prose">
@@ -331,30 +311,23 @@ function renderBlog() {
   if (!articles.length) {
     return `
       <section class="blog">
-        <p class="label">Blog</p>
         <h1 class="lead">Writing</h1>
         <p class="standfirst">Notes on what I'm building and thinking about. The first post is on its way.</p>
       </section>`;
   }
 
   const rows = articles.map((a) => {
-    const tags = (Array.isArray(a.domain) && a.domain.length)
-      ? `<span class="post-tags">${a.domain.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</span>`
-      : "";
     return `
     <li class="post-row">
       <a href="#blog/${encodeURIComponent(a.id)}">
-        <span class="post-meta">${[a.kind, a.date, a.readTime].filter(Boolean).map(escapeHtml).join(" · ")}</span>
         <span class="post-title">${escapeHtml(a.title)}</span>
         <span class="post-dek">${escapeHtml(a.dek || "")}</span>
-        ${tags}
       </a>
     </li>`;
   }).join("");
 
   return `
     <section class="blog">
-      <p class="label">Blogs</p>
       <h1 class="lead">Research Notes and Working Ideas</h1>
       <figure class="cut cut--right cut--blog">
         <img src="${escapeAttribute(PHOTOS.blog.src)}" alt="${escapeAttribute(PHOTOS.blog.alt)}" loading="eager" decoding="async" fetchpriority="high">
@@ -385,7 +358,7 @@ function renderArticle(articleId) {
 
   return `
     <article class="post">
-      <a class="back" href="#blog">Back to ideas</a>
+      <a class="back" href="#blog">Back to writing</a>
       <p class="label">${meta}</p>
       <h1 class="post-headline">${escapeHtml(article.title)}</h1>
       ${article.dek ? `<p class="post-dek-lead">${escapeHtml(article.dek)}</p>` : ""}
@@ -476,8 +449,7 @@ function renderProjects() {
 
   return `
     <section class="work">
-      <p class="label">Projects</p>
-      <h1 class="lead">What I've built and published.</h1>
+      <h1 class="lead">Selected work</h1>
       <figure class="cut cut--right cut--work">
         <img src="${escapeAttribute(PHOTOS.projects.src)}" alt="${escapeAttribute(PHOTOS.projects.alt)}" loading="eager" decoding="async" fetchpriority="high">
         <figcaption class="cap">${escapeHtml(PHOTOS.projects.caption)}</figcaption>
@@ -512,7 +484,7 @@ function itemRow(when, title, blurb, tags, link, linkLabel) {
       <span class="item-when">${escapeHtml(when || "")}</span>
       <div class="item-main">
         ${head}
-        <p>${escapeHtml(blurb)}</p>
+        <p>${String(blurb ?? "").split("\n").map(escapeHtml).join("<br>")}</p>
         ${tagHtml}
       </div>
     </li>`;
@@ -535,7 +507,7 @@ function renderContact() {
     ["Email", `mailto:${profile.email}`, profile.email],
     ["GitHub", profile.socials.githubUrl, profile.socials.github],
     ["LinkedIn", profile.socials.linkedinUrl, profile.socials.linkedin],
-    ["Resume", "assets/Haardhik_Kunder.pdf", "PDF"]
+    ["Resume", "assets/Haardhik_Kunder.pdf?v=8812c51a", "PDF"]
   ].map(([k, href, val]) => `
     <a class="contact-row" href="${escapeAttribute(href)}"${href.startsWith("mailto:") ? "" : ' target="_blank" rel="noreferrer"'}>
       <span class="contact-k">${escapeHtml(k)}</span>
@@ -544,8 +516,8 @@ function renderContact() {
 
   return `
     <section class="contact">
-      <p class="label">Contact</p>
-      <h1 class="lead">Open to hearing cool ideas and collaboration.</h1>
+      <h1 class="lead">Get in touch</h1>
+      <p class="standfirst">Email is the fastest way to reach me.</p>
       
       <div class="contact-grid">
         <div class="contact-links">${links}</div>

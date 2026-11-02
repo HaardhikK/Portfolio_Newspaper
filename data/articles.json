@@ -1,5 +1,15 @@
 [
   {
+    "id": "val-local-companion",
+    "title": "Val: the robot already in your drawer",
+    "dek": "A seven-year-old Android phone turned into an offline robot by using every sensor, three local models, and no cloud.",
+    "date": "October 2026",
+    "readTime": "4 min",
+    "tags": ["Edge AI", "Local LLMs", "Human-computer interaction"],
+    "kind": "Project note",
+    "domain": ["Edge AI", "Local LLMs", "Human-computer interaction"]
+  },
+  {
     "id": "latent-coordination",
     "title": "Latent versus text coordination for code executing agents",
     "dek": "Can analysis agents coordinate by sharing hidden states instead of talking in text? Mostly yes, until the chain gets long.",

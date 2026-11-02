@@ -11,16 +11,22 @@
   <link rel="preload" as="image" href="assets/4.webp" type="image/webp">
   <link rel="preload" as="image" href="assets/10.webp" type="image/webp">
   <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=20261102-original-font">
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
 
   <header class="masthead" aria-label="Site masthead">
     <a class="wordmark" href="#home">Haardhik Ratnakar Kunder</a>
-    <p class="masthead__meta">kunderhaardhik@gmail.com · Germany</p>
+    <nav class="site-nav" aria-label="Sections">
+      <a href="#home" data-route="home">Home</a>
+      <a href="#blog" data-route="blog">Blog</a>
+      <a href="#projects" data-route="projects">Project</a>
+      <a href="#contact" data-route="contact">Contact</a>
+    </nav>
   </header>
 
+  <!-- Previous sidebar and mobile Index menu, retained for reference.
   <button class="mobile-menu" type="button" aria-controls="section-rail" aria-expanded="false">
     <span class="mobile-menu__mark" aria-hidden="true"></span>
     Index
@@ -45,12 +51,13 @@
       <strong>Contact</strong>
     </a>
   </nav>
+  -->
 
   <main class="paper" id="content" tabindex="-1" aria-live="polite"></main>
 
   <script src="assets/vendor/marked.min.js" defer></script>
   <script src="assets/vendor/katex/katex.min.js" defer></script>
   <script src="assets/vendor/katex/auto-render.min.js" defer></script>
-  <script src="js/app.js" defer></script>
+  <script src="js/app.js?v=20261102-original-intro" defer></script>
 </body>
 </html>
