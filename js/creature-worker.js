@@ -1,4 +1,4 @@
-import { createCreatureEngine } from './creature-engine.js?v=mobile-pace-paths';
+import { createCreatureEngine } from './creature-engine.js?v=mobile-screen-travel';
 
 let engine;
 self.onmessage = ({ data }) => {

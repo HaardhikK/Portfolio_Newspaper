@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 // Exercise the actual engine function without a browser or a drawing context.
 const source = readFileSync(new URL('../js/creature-engine.js', import.meta.url), 'utf8');
-const wander = source.slice(source.indexOf('  function wander('), source.indexOf('  function pigment(color)'));
+const wander = source.slice(source.indexOf('  function moveMobile('), source.indexOf('  function pigment(color)'));
 
 function advance(mobile, angle = 0, id = 'filament') {
   const swimmer = {
@@ -21,19 +21,15 @@ function advance(mobile, angle = 0, id = 'filament') {
   return swimmer;
 }
 
-test('mobile travel is 50% faster than the previous gentle setting', () => {
-  const mobile = advance(true), desktop = advance(false);
-  assert(Math.abs((mobile.x - 0.4) * 390 - 6) < 1e-8);
+test('desktop travel and internal body rate remain unchanged', () => {
+  const desktop = advance(false);
   assert(Math.abs((desktop.x - 0.4) * 390 - 40) < 1e-8);
-  assert.equal(mobile.shapePhase, desktop.shapePhase);
-  assert.equal(mobile.shapePhase, 1.6);
+  assert.equal(desktop.shapePhase, 1.6);
 });
 
-test('mobile heading changes are reduced without changing the body clock', () => {
+test('mobile route changes do not change the internal body clock', () => {
   const mobile = advance(true, Math.PI / 2), desktop = advance(false, Math.PI / 2);
-  const mobileTurn = Math.PI / 2 - mobile.angle;
-  const desktopTurn = Math.PI / 2 - desktop.angle;
-  assert(Math.abs(mobileTurn / desktopTurn - 0.15) < 1e-8);
+  assert.equal(mobile.bodyAngle, mobile.angle);
   assert.equal(mobile.shapePhase, desktop.shapePhase);
 });
 
@@ -47,10 +43,10 @@ test('desktop green creature faces its travel direction through left and right t
 
 test('mobile restores the green creature with gentle travel', () => {
   const swimmer = advance(true, 0.7, 'arc');
-  assert(swimmer.x > 0.4);
+  assert(swimmer.x > 0 && swimmer.x < 1);
   assert.equal(swimmer.bodyAngle, swimmer.angle);
   assert.equal(swimmer.shapePhase, 1.6);
-  assert.equal(swimmer.targetAge, 1);
+  assert.equal(swimmer.targetAge, 0);
 });
 
 test('green creature starts aligned to its first target without realigning on resize', () => {
@@ -71,34 +67,34 @@ test('green creature starts aligned to its first target without realigning on re
   assert.equal(swimmer.bodyAngle, 0.4);
 });
 
-test('mobile edge recovery sends creatures to distinct return areas, not the center', () => {
+test('mobile routes remain separated and keep moving for ten minutes', () => {
   const swimmers = ['filament', 'arc'].map(id => ({
     definition: { id, timeStep: 1 / 60, phaseRateScale: 1 },
     x: 0.1, y: 0.5, angle: 0, bodyAngle: 0, turnRate: 0,
     targetX: 0.5, targetY: 0.5, targetAge: 0, nextTarget: 20,
     speed: 40, phase: 0, shapePhase: 0,
   }));
-  vm.runInNewContext(`${wander}\nwander(1 / 60);`, {
-    swimmers, width: 390, height: 844, elapsed: 0, mobileLayout: { matches: true }, Math,
-  });
-  assert.equal(swimmers[0].targetX, 0.85);
-  assert.equal(swimmers[1].targetX, 0.85);
-  assert.equal(swimmers[0].targetY, 0.24);
-  assert.equal(swimmers[1].targetY, 0.76);
-});
-
-test('mobile retargets in body-independent seconds and stays in separate destination bands', () => {
-  const swimmers = ['filament', 'arc'].map(id => ({
-    definition: { id, timeStep: 1 / 60, phaseRateScale: 1 },
-    x: 0.4, y: 0.4, angle: 0, bodyAngle: 0, turnRate: 0,
-    targetX: 0.9, targetY: 0.9, targetAge: 7.99, nextTarget: 8,
-    speed: 40, phase: 0, shapePhase: 0,
-  }));
-  vm.runInNewContext(`${wander}\nwander(0.02, 0.001);`, {
-    swimmers, width: 390, height: 844, elapsed: 0, mobileLayout: { matches: true }, Math,
-  });
-  assert.equal(swimmers[0].targetAge, 0);
-  assert.equal(swimmers[1].targetAge, 0);
-  assert(swimmers[0].targetY >= 0.16 && swimmers[0].targetY <= 0.42);
-  assert(swimmers[1].targetY >= 0.58 && swimmers[1].targetY <= 0.84);
+  for (const [width, height] of [[390, 844], [844, 390], [320, 568]]) {
+    const context = vm.createContext({ swimmers: structuredClone(swimmers), width, height,
+      elapsed: 0, mobileLayout: { matches: true }, Math, assert });
+    vm.runInContext(`${wander}
+      const safe = Math.min(width, height) * 0.4 - 12;
+      const screen = s => [(s.x - 0.5) * (width - 2 * safe - 24),
+        (s.y - 0.5) * (height - 2 * safe - 24)];
+      swimmers.forEach(s => moveMobile(s, 0));
+      for (let frame = 0; frame < 36000; frame++) {
+        const before = swimmers.map(screen);
+        wander(0.55 / 60, 0.55 / 60 * 0.375);
+        swimmers.forEach((s, index) => {
+          const after = screen(s);
+          const pixelsPerSecond = Math.hypot(after[0] - before[index][0], after[1] - before[index][1]) * 60;
+          assert(pixelsPerSecond > 12 && pixelsPerSecond < 15);
+          assert.equal(s.angle, s.bodyAngle);
+          assert(s.x > 0 && s.x < 1 && s.y > 0 && s.y < 1);
+        });
+        const a = screen(swimmers[0]), b = screen(swimmers[1]);
+        assert(Math.hypot(a[0] - b[0], a[1] - b[1]) > 30);
+      }
+    `, context);
+  }
 });

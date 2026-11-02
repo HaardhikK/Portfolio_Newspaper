@@ -77,15 +77,7 @@ export function createCreatureEngine(canvas, settings) {
     paperLeft = next.paperLeft;
     paperRight = next.paperRight;
     for (const swimmer of swimmers) {
-      if (next.mobile && !swimmer.mobileTargetReady) {
-        swimmer.targetX = swimmer.definition.id === 'filament' ? 0.85 : 0.15;
-        swimmer.targetY = swimmer.definition.id === 'filament' ? 0.24 : 0.76;
-        if (width > height) [swimmer.targetX, swimmer.targetY] = [swimmer.targetY, swimmer.targetX];
-        swimmer.angle = Math.atan2((swimmer.targetY - swimmer.y) * height,
-          (swimmer.targetX - swimmer.x) * width);
-        swimmer.bodyAngle = swimmer.angle;
-        swimmer.mobileTargetReady = true;
-      }
+      if (next.mobile) moveMobile(swimmer, 0);
       if (swimmer.definition.id === 'arc' && swimmer.bodyAngle === null) {
         swimmer.angle = Math.atan2((swimmer.targetY - swimmer.y) * height,
           (swimmer.targetX - swimmer.x) * width);
@@ -97,39 +89,57 @@ export function createCreatureEngine(canvas, settings) {
     draw();
   }
 
+  function moveMobile(swimmer, dt) {
+    const pika = swimmer.definition.id === 'filament';
+    const direction = pika ? 1 : -1;
+    const lane = pika ? -1 : 1;
+    const landscape = width > height;
+    const safeRadius = Math.max(1, Math.min(width, height) * 0.4 - 12);
+    const travelWidth = Math.max(1, width - 2 * safeRadius - 24);
+    const travelHeight = Math.max(1, height - 2 * safeRadius - 24);
+    swimmer.mobileRoutePhase ??= pika ? -0.8 : 2.1;
+    const tangent = phase => {
+      const across = -0.42 * Math.sin(phase);
+      const along = 0.19 * Math.cos(phase);
+      return landscape ? [along * travelWidth, across * travelHeight]
+        : [across * travelWidth, along * travelHeight];
+    };
+    const before = tangent(swimmer.mobileRoutePhase);
+    // Advance by screen distance, not hidden coordinates compressed at the edges.
+    swimmer.mobileRoutePhase += direction * swimmer.speed * 0.6 * dt / Math.max(1, Math.hypot(...before));
+    const phase = swimmer.mobileRoutePhase;
+    const across = 0.5 + 0.42 * Math.cos(phase);
+    const along = 0.5 + lane * 0.22 + 0.19 * Math.sin(phase);
+    swimmer.x = landscape ? along : across;
+    swimmer.y = landscape ? across : along;
+    const velocity = tangent(phase);
+    swimmer.angle = Math.atan2(velocity[1] * direction, velocity[0] * direction);
+    swimmer.bodyAngle = swimmer.angle;
+  }
+
   function wander(dt, bodyDt = dt) {
-    const travelRate = mobileLayout.matches ? 0.15 : 1;
+    const travelRate = 1;
     const travelDt = dt * travelRate;
     for (const swimmer of swimmers) {
-      swimmer.targetAge += mobileLayout.matches ? dt : travelDt;
+      if (mobileLayout.matches) {
+        moveMobile(swimmer, dt);
+        swimmer.shapePhase += swimmer.definition.timeStep * 60 * swimmer.definition.phaseRateScale * bodyDt * 1.6;
+        continue;
+      }
+      swimmer.targetAge += travelDt;
       let dx = (swimmer.targetX - swimmer.x) * width;
       let dy = (swimmer.targetY - swimmer.y) * height;
       if (swimmer.targetAge > swimmer.nextTarget || Math.hypot(dx, dy) < 65) {
         swimmer.targetX = 0.06 + Math.random() * 0.88;
-        swimmer.targetY = mobileLayout.matches
-          ? (swimmer.definition.id === 'filament' ? 0.16 : 0.58) + Math.random() * 0.26
-          : 0.12 + Math.random() * 0.76;
-        if (mobileLayout.matches && width > height) {
-          [swimmer.targetX, swimmer.targetY] = [swimmer.targetY, swimmer.targetX];
-        }
+        swimmer.targetY = 0.12 + Math.random() * 0.76;
         swimmer.targetAge = 0;
         swimmer.nextTarget = 8 + Math.random() * 12;
       }
       const marginX = Math.min(0.25, 100 / width);
       const marginY = Math.min(0.25, 100 / height);
       if (swimmer.x < marginX || swimmer.x > 1 - marginX || swimmer.y < marginY || swimmer.y > 1 - marginY) {
-        if (mobileLayout.matches) {
-          // Give each creature its own return route instead of a shared center.
-          swimmer.targetX = swimmer.x < marginX ? 0.85 : swimmer.x > 1 - marginX ? 0.15 : swimmer.targetX;
-          swimmer.targetY = swimmer.definition.id === 'filament' ? 0.24 : 0.76;
-          if (width > height) {
-            swimmer.targetX = swimmer.definition.id === 'filament' ? 0.24 : 0.76;
-            swimmer.targetY = swimmer.y < marginY ? 0.85 : swimmer.y > 1 - marginY ? 0.15 : swimmer.targetY;
-          }
-        } else {
-          swimmer.targetX = 0.5;
-          swimmer.targetY = 0.5;
-        }
+        swimmer.targetX = 0.5;
+        swimmer.targetY = 0.5;
       }
       dx = (swimmer.targetX - swimmer.x) * width;
       dy = (swimmer.targetY - swimmer.y) * height;
@@ -215,8 +225,8 @@ export function createCreatureEngine(canvas, settings) {
         fit = Math.min(1, safeRadius / halfX, safeRadius / halfY);
         const rangeX = Math.max(0, width / 2 - safeRadius - 12);
         const rangeY = Math.max(0, height / 2 - safeRadius - 12);
-        x = width / 2 + rangeX * Math.tanh((swimmer.x - 0.5) * 3);
-        y = height / 2 + rangeY * Math.tanh((swimmer.y - 0.5) * 3);
+        x = width / 2 + rangeX * (swimmer.x - 0.5) * 2;
+        y = height / 2 + rangeY * (swimmer.y - 0.5) * 2;
       }
       swimmer.bounds = { left: x + (minX - offsetX) * fit, right: x + (maxX - offsetX) * fit,
         top: y + (minY - offsetY) * fit, bottom: y + (maxY - offsetY) * fit };
