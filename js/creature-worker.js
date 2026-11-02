@@ -1,4 +1,4 @@
-import { createCreatureEngine } from './creature-engine.js?v=aligned-turns';
+import { createCreatureEngine } from './creature-engine.js?v=mobile-pika-only';
 
 let engine;
 self.onmessage = ({ data }) => {

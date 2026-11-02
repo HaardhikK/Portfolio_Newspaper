@@ -93,6 +93,7 @@ export function createCreatureEngine(canvas, settings) {
     const travelRate = mobileLayout.matches ? 0.2 : 1;
     const travelDt = dt * travelRate;
     for (const swimmer of swimmers) {
+      if (mobileLayout.matches && swimmer.definition.id === 'arc') continue;
       swimmer.targetAge += travelDt;
       let dx = (swimmer.targetX - swimmer.x) * width;
       let dy = (swimmer.targetY - swimmer.y) * height;
@@ -155,6 +156,7 @@ export function createCreatureEngine(canvas, settings) {
     const scale = Math.min(width, height) * (width < 720 ? 0.8 : 0.88);
     const stride = 1;
     for (const swimmer of swimmers) {
+      if (mobileLayout.matches && swimmer.definition.id === 'arc') continue;
       const { field, definition } = swimmer;
       field.advance(swimmer.shapePhase);
       metrics.shapeUpdates++;

@@ -37,14 +37,21 @@ test('mobile heading changes are reduced without changing the body clock', () =>
   assert.equal(mobile.shapePhase, desktop.shapePhase);
 });
 
-test('green creature faces its travel direction through left and right turns', () => {
-  for (const mobile of [false, true]) {
-    for (const angle of [-Math.PI + 0.01, -Math.PI / 2, Math.PI / 2, Math.PI - 0.01]) {
-      const swimmer = advance(mobile, angle, 'arc');
-      assert.equal(swimmer.bodyAngle, swimmer.angle);
-      assert.equal(swimmer.shapePhase, 1.6);
-    }
+test('desktop green creature faces its travel direction through left and right turns', () => {
+  for (const angle of [-Math.PI + 0.01, -Math.PI / 2, Math.PI / 2, Math.PI - 0.01]) {
+    const swimmer = advance(false, angle, 'arc');
+    assert.equal(swimmer.bodyAngle, swimmer.angle);
+    assert.equal(swimmer.shapePhase, 1.6);
   }
+});
+
+test('mobile does not simulate the green creature', () => {
+  const swimmer = advance(true, 0.7, 'arc');
+  assert.equal(swimmer.x, 0.4);
+  assert.equal(swimmer.y, 0.4);
+  assert.equal(swimmer.angle, 0.7);
+  assert.equal(swimmer.shapePhase, 0);
+  assert.equal(swimmer.targetAge, 0);
 });
 
 test('green creature starts aligned to its first target without realigning on resize', () => {
