@@ -134,6 +134,13 @@ export function createCreatureEngine(canvas, settings) {
     return gradient;
   }
 
+  function bodyWave(swimmer, u, radius) {
+    const anatomy = swimmer.field.anatomy;
+    const swayScale = swimmer.definition.id === 'arc' ? 0.3 : 0.85;
+    return anatomy.wave * swayScale * radius * smoothstep(anatomy.rampStart, 1, u)
+      * Math.sin(Math.PI * 2 * (u / anatomy.wavelength - elapsed * anatomy.waveRate * 1.6));
+  }
+
   function draw() {
     const started = performance.now();
     ctx.clearRect(0, 0, width, height);
@@ -150,9 +157,7 @@ export function createCreatureEngine(canvas, settings) {
       field.setPose(0, 0, heading, radius);
       for (let band = 0; band < DEFORM_BANDS; band++) {
         const u = band / (DEFORM_BANDS - 1);
-        const anatomy = field.anatomy;
-        const wave = anatomy.wave * radius * smoothstep(anatomy.rampStart, 1, u)
-          * Math.sin(Math.PI * 2 * (u / anatomy.wavelength - elapsed * anatomy.waveRate * 1.6));
+        const wave = bodyWave(swimmer, u, radius);
         swimmer.deformX[band] = -Math.sin(heading) * wave;
         swimmer.deformY[band] = Math.cos(heading) * wave;
       }
