@@ -1,4 +1,4 @@
-import { createCreatureEngine } from './creature-engine.js?v=reduced-sway';
+import { createCreatureEngine } from './creature-engine.js?v=aligned-turns';
 
 let engine;
 self.onmessage = ({ data }) => {

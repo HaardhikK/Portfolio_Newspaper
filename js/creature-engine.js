@@ -77,6 +77,11 @@ export function createCreatureEngine(canvas, settings) {
     paperLeft = next.paperLeft;
     paperRight = next.paperRight;
     for (const swimmer of swimmers) {
+      if (swimmer.definition.id === 'arc' && swimmer.bodyAngle === null) {
+        swimmer.angle = Math.atan2((swimmer.targetY - swimmer.y) * height,
+          (swimmer.targetX - swimmer.x) * width);
+        swimmer.bodyAngle = swimmer.angle;
+      }
       swimmer.palette = bodyPalette(swimmer.definition);
       swimmer.brushes = swimmer.palette.map(pigment);
     }
@@ -112,7 +117,8 @@ export function createCreatureEngine(canvas, settings) {
       swimmer.angle += swimmer.turnRate * travelDt;
       if (swimmer.bodyAngle === null) swimmer.bodyAngle = swimmer.angle;
       const bodyTurn = Math.atan2(Math.sin(swimmer.angle - swimmer.bodyAngle), Math.cos(swimmer.angle - swimmer.bodyAngle));
-      swimmer.bodyAngle += bodyTurn * (1 - Math.exp(-dt / 0.65));
+      swimmer.bodyAngle = swimmer.definition.id === 'arc'
+        ? swimmer.angle : swimmer.bodyAngle + bodyTurn * (1 - Math.exp(-dt / 0.65));
       swimmer.x += Math.cos(swimmer.angle) * swimmer.speed * travelDt / width;
       swimmer.y += Math.sin(swimmer.angle) * swimmer.speed * travelDt / height;
       swimmer.shapePhase += swimmer.definition.timeStep * 60 * swimmer.definition.phaseRateScale * dt * 1.6;
@@ -135,8 +141,10 @@ export function createCreatureEngine(canvas, settings) {
   }
 
   function bodyWave(swimmer, u, radius) {
+    // Inbyo already undulates in its equation; a second wave fights its turns.
+    if (swimmer.definition.id === 'arc') return 0;
     const anatomy = swimmer.field.anatomy;
-    const swayScale = swimmer.definition.id === 'arc' ? 0.3 : 0.85;
+    const swayScale = 0.85;
     return anatomy.wave * swayScale * radius * smoothstep(anatomy.rampStart, 1, u)
       * Math.sin(Math.PI * 2 * (u / anatomy.wavelength - elapsed * anatomy.waveRate * 1.6));
   }

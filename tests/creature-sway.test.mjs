@@ -11,7 +11,7 @@ const smoothstep = (a, b, x) => {
   return t * t * (3 - 2 * t);
 };
 
-for (const [id, scale] of [['arc', 0.3], ['filament', 0.85]]) {
+for (const [id, scale] of [['arc', 0], ['filament', 0.85]]) {
   test(`${id} reduces sway amplitude without changing wave timing`, () => {
     for (const elapsed of [0, 0.5, 2, 7, 15]) {
       for (const u of [0, 0.3, 0.6, 0.8, 1]) {
