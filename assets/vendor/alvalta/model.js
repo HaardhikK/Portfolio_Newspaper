@@ -89,9 +89,9 @@ function generateRibbed(time, target) {
     }
     return count;
 }
-function generateFilament(time, target) {
+function generateFilament(time, target, sampleStep = 3) {
     let count = 0;
-    for(let i = 19_999; i >= 0; i -= 3){
+    for(let i = 19_999; i >= 0; i -= sampleStep){
         const y = i / 500;
         const k = Math.cos(y * 3.79) * (y < 12.16 ? 18.88 : 10.75);
         const e = y / 8 - 11.93;
@@ -114,9 +114,9 @@ function generateSkull(time, target) {
     }
     return count;
 }
-function generateArc(time, target) {
+function generateArc(time, target, sampleStep = 3) {
     let count = 0;
-    for(let i = 19_999; i >= 0; i -= 3){
+    for(let i = 19_999; i >= 0; i -= sampleStep){
         const y = i / 500;
         const k = Math.cos(y * 6.44) * (y < 3.96 ? 23.37 : 11.21);
         const e = y / 8 - 5.46;

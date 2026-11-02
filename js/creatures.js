@@ -1,197 +1,79 @@
-import { definitionFor } from '../assets/vendor/alvalta/model.js';
-import { BodyField, DEFORM_BANDS, smoothstep } from '../assets/vendor/alvalta/body-field.js';
-import envelopes from '../assets/vendor/alvalta/envelopes.js';
+let canvas = document.querySelector('#creature-overlay');
+const mobile = matchMedia('(max-width: 720px), (hover: none) and (pointer: coarse)');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+let worker;
+let fallback;
+let transferred = false;
+let resizeTimer;
 
-const canvas = document.querySelector('#creature-overlay');
-const ctx = canvas.getContext('2d');
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const mobileLayout = matchMedia('(max-width: 720px), (hover: none) and (pointer: coarse)');
-
-function bodyPalette(definition) {
-  const stops = definition.gradient ?? [definition.id === 'arc' ? '#009e70' : definition.color];
-  const rgb = stops.map(color => [1, 3, 5].map(offset => parseInt(color.slice(offset, offset + 2), 16)));
-  return Array.from({ length: 32 }, (_, index) => {
-    const position = index / 31 * (rgb.length - 1);
-    const first = Math.floor(position), last = Math.min(rgb.length - 1, first + 1);
-    const mix = position - first;
-    return `rgb(${rgb[first].map((value, channel) => Math.round(value + (rgb[last][channel] - value) * mix)).join(',')})`;
-  });
+function settings() {
+  const rect = canvas.getBoundingClientRect();
+  const paper = document.querySelector('.paper').getBoundingClientRect();
+  return {
+    width: rect.width, height: rect.height, pixelRatio: devicePixelRatio || 1,
+    paperLeft: paper.left, paperRight: paper.right,
+    mobile: mobile.matches, reducedMotion: reduced.matches,
+    lightweight: !worker,
+  };
 }
 
-const swimmers = ['filament', 'arc'].map((id, index) => ({
-  definition: definitionFor(id),
-  palette: bodyPalette(definitionFor(id)),
-  brushes: [],
-  field: new BodyField(definitionFor(id), envelopes[id], index ? 3.51 : 1.17),
-  shapePhase: index ? 3.51 : 1.17,
-  deformX: new Float32Array(DEFORM_BANDS),
-  deformY: new Float32Array(DEFORM_BANDS),
-  x: index === 0 ? 0.22 : 0.78,
-  y: index === 0 ? 0.35 : 0.72,
-  angle: Math.random() * Math.PI * 2,
-  bodyAngle: null,
-  turnRate: 0,
-  targetX: Math.random(),
-  targetY: Math.random(),
-  targetAge: 0,
-  nextTarget: 12 + Math.random() * 18,
-  speed: 38 + Math.random() * 10,
-  phase: Math.random() * Math.PI * 2,
-  projected: new Float32Array(definitionFor(id).attemptedSamples * 2),
-}));
-let elapsed = 0;
-let width = 0;
-let height = 0;
-let paperLeft = 0;
-let paperRight = 0;
-let last = 0;
-let frame = 0;
-const point = new Float64Array(2);
+function visibility() {
+  if (worker) worker.postMessage({ type: 'visibility', hidden: document.hidden });
+  else fallback?.setHidden(document.hidden);
+}
+
+async function start() {
+  if (typeof Worker !== 'undefined' && typeof canvas.transferControlToOffscreen === 'function') {
+    try {
+      worker = new Worker(new URL('./creature-worker.js?v=mobile-performance', import.meta.url), { type: 'module' });
+      const options = settings();
+      const offscreen = canvas.transferControlToOffscreen();
+      transferred = true;
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Creature worker did not start')), 8000);
+        worker.onmessage = ({ data }) => {
+          if (data.type === 'ready') { clearTimeout(timeout); resolve(); }
+        };
+        worker.onerror = event => { event.preventDefault(); clearTimeout(timeout); reject(new Error(event.message || 'Creature worker failed')); };
+        worker.postMessage({ type: 'init', canvas: offscreen, settings: options }, [offscreen]);
+      });
+    } catch (error) {
+      worker?.terminate();
+      worker = null;
+      // A transferred canvas cannot be reused by the main-thread fallback.
+      if (transferred) {
+        const replacement = canvas.cloneNode();
+        canvas.replaceWith(replacement);
+        canvas = replacement;
+      }
+      console.info('Using lightweight creature rendering fallback.', error);
+    }
+  }
+  if (!worker) {
+    const { createCreatureEngine } = await import('./creature-engine.js');
+    fallback = createCreatureEngine(canvas, settings());
+  }
+  performance.mark('creatures:ready');
+  visibility();
+}
+
+await start();
 
 function resize() {
-  width = innerWidth;
-  height = innerHeight;
-  const ratio = Math.min(devicePixelRatio || 1, 1.5);
-  canvas.width = Math.round(width * ratio);
-  canvas.height = Math.round(height * ratio);
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  const paper = document.querySelector('.paper').getBoundingClientRect();
-  paperLeft = paper.left;
-  paperRight = paper.right;
-  for (const swimmer of swimmers) swimmer.brushes = swimmer.palette.map(pigment);
-  draw();
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const options = settings();
+    if (worker) worker.postMessage({ type: 'resize', settings: options });
+    else fallback?.resize(options);
+  }, 100);
 }
 
-function wander(dt) {
-  for (const swimmer of swimmers) {
-    swimmer.targetAge += dt;
-    let dx = (swimmer.targetX - swimmer.x) * width;
-    let dy = (swimmer.targetY - swimmer.y) * height;
-    if (swimmer.targetAge > swimmer.nextTarget || Math.hypot(dx, dy) < 65) {
-      swimmer.targetX = 0.06 + Math.random() * 0.88;
-      swimmer.targetY = 0.12 + Math.random() * 0.76;
-      swimmer.targetAge = 0;
-      swimmer.nextTarget = 8 + Math.random() * 12;
-    }
-    const marginX = Math.min(0.25, 100 / width);
-    const marginY = Math.min(0.25, 100 / height);
-    if (swimmer.x < marginX || swimmer.x > 1 - marginX || swimmer.y < marginY || swimmer.y > 1 - marginY) {
-      swimmer.targetX = 0.5;
-      swimmer.targetY = 0.5;
-    }
-    dx = (swimmer.targetX - swimmer.x) * width;
-    dy = (swimmer.targetY - swimmer.y) * height;
-    const aim = Math.atan2(dy, dx) + Math.sin(elapsed * 0.31 + swimmer.phase) * 0.22;
-    const turn = Math.atan2(Math.sin(aim - swimmer.angle), Math.cos(aim - swimmer.angle));
-    const wantedTurn = Math.max(-0.65, Math.min(0.65, turn * 1.8));
-    swimmer.turnRate += (wantedTurn - swimmer.turnRate) * (1 - Math.exp(-dt / 0.35));
-    swimmer.angle += swimmer.turnRate * dt;
-    if (swimmer.bodyAngle === null) swimmer.bodyAngle = swimmer.angle;
-    const bodyTurn = Math.atan2(Math.sin(swimmer.angle - swimmer.bodyAngle), Math.cos(swimmer.angle - swimmer.bodyAngle));
-    swimmer.bodyAngle += bodyTurn * (1 - Math.exp(-dt / 0.65));
-    swimmer.x += Math.cos(swimmer.angle) * swimmer.speed * dt / width;
-    swimmer.y += Math.sin(swimmer.angle) * swimmer.speed * dt / height;
-    swimmer.shapePhase += swimmer.definition.timeStep * 60 * swimmer.definition.phaseRateScale * dt * 1.6;
-  }
-}
-
-function pigment(color) {
-  const ink = 'rgba(55, 55, 51, 0.62)';
-  const gradient = ctx.createLinearGradient(0, 0, width, 0);
-  const edge = Math.min(70, (paperRight - paperLeft) / 6);
-  const left = Math.max(0, paperLeft - edge);
-  const right = Math.min(width, paperRight + edge);
-  gradient.addColorStop(0, paperLeft > 0 ? color : ink);
-  gradient.addColorStop(left / width, paperLeft > 0 ? color : ink);
-  gradient.addColorStop(Math.min(width, paperLeft + edge) / width, ink);
-  gradient.addColorStop(Math.max(paperLeft + edge, paperRight - edge) / width, ink);
-  gradient.addColorStop(right / width, paperRight < width ? color : ink);
-  gradient.addColorStop(1, paperRight < width ? color : ink);
-  return gradient;
-}
-
-function draw() {
-  ctx.clearRect(0, 0, width, height);
-  const scale = Math.min(width, height) * (width < 720 ? 0.8 : 0.88);
-  const stride = width < 720 ? 2 : 1;
-  for (const swimmer of swimmers) {
-    const { field, definition } = swimmer;
-    field.advance(swimmer.shapePhase);
-    let x = swimmer.x * width;
-    let y = swimmer.y * height;
-    const radius = definition.visualRadius * scale;
-    const heading = swimmer.bodyAngle ?? swimmer.angle;
-    field.setPose(0, 0, heading, radius);
-    for (let band = 0; band < DEFORM_BANDS; band++) {
-      const u = band / (DEFORM_BANDS - 1);
-      const anatomy = field.anatomy;
-      const wave = anatomy.wave * radius * smoothstep(anatomy.rampStart, 1, u)
-        * Math.sin(Math.PI * 2 * (u / anatomy.wavelength - elapsed * anatomy.waveRate * 1.6));
-      swimmer.deformX[band] = -Math.sin(heading) * wave;
-      swimmer.deformY[band] = Math.cos(heading) * wave;
-    }
-    field.setDeformation(swimmer.deformX, swimmer.deformY);
-    let count = 0, sumX = 0, sumY = 0;
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (let i = 0; i < field.count; i += stride) {
-      field.projectInto(i, radius, point);
-      swimmer.projected[count * 2] = point[0];
-      swimmer.projected[count * 2 + 1] = point[1];
-      minX = Math.min(minX, point[0]); maxX = Math.max(maxX, point[0]);
-      minY = Math.min(minY, point[1]); maxY = Math.max(maxY, point[1]);
-      sumX += point[0]; sumY += point[1]; count++;
-    }
-    let offsetX = 0, offsetY = 0, fit = 1;
-    if (mobileLayout.matches) {
-      // Fit the visible body, not just its head. A smooth mapping has no edge
-      // clamps, teleports or direction flips; the original wandering is unchanged.
-      offsetX = sumX / count;
-      offsetY = sumY / count;
-      const halfX = Math.max(offsetX - minX, maxX - offsetX);
-      const halfY = Math.max(offsetY - minY, maxY - offsetY);
-      fit = Math.min(1, (width - 24) / (2 * halfX), (height - 24) / (2 * halfY));
-      const rangeX = Math.max(0, width / 2 - halfX * fit - 12);
-      const rangeY = Math.max(0, height / 2 - halfY * fit - 12);
-      x = width / 2 + rangeX * Math.tanh((swimmer.x - 0.5) * 3);
-      y = height / 2 + rangeY * Math.tanh((swimmer.y - 0.5) * 3);
-    }
-    swimmer.bounds = { left: x + (minX - offsetX) * fit, right: x + (maxX - offsetX) * fit,
-      top: y + (minY - offsetY) * fit, bottom: y + (maxY - offsetY) * fit };
-    const paths = swimmer.palette.map(() => new Path2D());
-    for (let sample = 0, i = 0; sample < count; sample++, i += stride) {
-      const band = Math.max(0, Math.min(31, Math.floor(field.longitudinal[i] * 31)));
-      paths[band].rect(x + (swimmer.projected[sample * 2] - offsetX) * fit,
-        y + (swimmer.projected[sample * 2 + 1] - offsetY) * fit, 0.8, 0.8);
-    }
-    for (let band = 0; band < paths.length; band++) {
-      ctx.fillStyle = mobileLayout.matches ? swimmer.palette[band] : swimmer.brushes[band];
-      ctx.fill(paths[band]);
-    }
-  }
-}
-
-function tick(now) {
-  frame = 0;
-  if (document.hidden) return;
-  if (now - last >= 1000 / 30) {
-    const dt = Math.min((now - (last || now)) / 1000, 0.2) * (reducedMotion.matches ? 0.15 : 1);
-    last = now;
-    elapsed += dt;
-    wander(dt);
-    draw();
-  }
-  frame = requestAnimationFrame(tick);
-}
-
-function syncPlayback() {
-  cancelAnimationFrame(frame);
-  last = 0;
-  draw();
-  if (!document.hidden) frame = requestAnimationFrame(tick);
-}
-
-document.addEventListener('visibilitychange', syncPlayback);
 addEventListener('resize', resize);
-resize();
-syncPlayback();
-performance.mark('creatures:ready');
+mobile.addEventListener('change', resize);
+reduced.addEventListener('change', resize);
+document.addEventListener('visibilitychange', visibility);
+addEventListener('pagehide', () => {
+  if (worker) worker.postMessage({ type: 'visibility', hidden: true });
+  else fallback?.setHidden(true);
+});
+addEventListener('pageshow', visibility);

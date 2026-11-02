@@ -43,6 +43,8 @@ body { background: var(--paper); }
 .work .item-go, .work .tags { display: none; }
 
 @media (max-width: 720px), (max-width: 980px) and (pointer: coarse) {
+  /* Avoid rescaling the animation as phone browser toolbars expand/collapse. */
+  #creature-overlay { height: 100svh; }
   .home .cut,
   .blog .cut--blog,
   .work .cut--work {

@@ -10,12 +10,16 @@ Portfolio adaptations in `model.js`: only Pika and Inbyo are instantiated, and
 the envelope cache is seeded from `envelopes.js`. This avoids re-running the
 96-phase bound measurement on every page load. The saved bounds were generated
 using the original `measureReferenceEnvelope(definitionFor(id))` for each body.
-Pika and Inbyo evaluate every third original sample rather than generating points
-that the overlay would discard. Their equations and full parameter range remain
-the same; the overlay draws all these samples on desktop and half on mobile.
+Pika and Inbyo accept a sampling-step argument: every third original sample on
+desktop, every eighth on mobile in the worker, or every twelfth in the
+main-thread fallback. Their equations and full parameter range remain the same.
+Mobile refreshes the raw equation body at 15 Hz while carrying and deforming it
+at 30 Hz. The fallback uses 12/24 Hz. The flat-color creature needs only one path.
 The upstream project credits @yuruyurau as base inspiration, with original designs.
 
-The portfolio-specific overlay is in `js/creatures.js`. It uses `BodyField`
+`js/creatures.js` controls worker startup, resize and visibility. The shared
+renderer is `js/creature-engine.js`, normally run in `js/creature-worker.js`,
+with a main-thread fallback for browsers without this support. It uses `BodyField`
 directly with the saved envelopes and original equations/anatomical waves.
 Viewport wandering and body heading now share one trajectory; the separate
 reference-world navigation is not run behind the overlay. Photos and archive
@@ -25,6 +29,9 @@ the upstream pink/orange/gold ramp along its head-to-tail coordinate. Mobile
 keeps the colored body everywhere, with no special treatment over text. Mobile
 fits the full projected body into the viewport using a smooth position mapping,
 without changing the original wandering or adding edge bounces. Desktop keeps gray ink over the paper and
-colored bodies in the margins. The earlier slower wandering/turning is retained.
+colored bodies in the margins. The second creature uses pastel mint; Pika keeps
+its original palette. Mobile advances the motion clock at 55% of desktop speed.
+Its canvas uses a 1x pixel ratio and a stable small-viewport height so changing
+phone browser toolbars does not repeatedly resize the artwork.
 No build step or network
 dependency is needed at runtime.

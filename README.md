@@ -21,6 +21,11 @@ blank and publish directory `.`. No Vercel, server, Functions, Node runtime, or
 external CDN is required. The animation loads after the portfolio paints; a
 failure in the artwork does not block the site. Creature bounds are precomputed
 in `assets/vendor/alvalta/envelopes.js`, not measured during visitor startup.
+Supported browsers run the drawing in a module Worker with OffscreenCanvas so
+it does not compete with page scrolling. Other browsers use a lighter main-thread
+fallback. Mobile uses fewer equation samples, a lower canvas pixel ratio, and
+slower motion. The worker and engine are ordinary same-origin JavaScript files;
+they do not require Netlify Functions or special deployment headers.
 
 Use these settings when connecting this repository to Netlify:
 
