@@ -13,9 +13,10 @@ const FALLBACK_DATA = {
     name: "Haardhik Ratnakar Kunder",
     meta: "kunderhaardhik@gmail.com · Dresden, Germany",
     tagline: "I build AI systems, chase strange questions and pretend that was the plan.",
-    intro: "My interests sit around LLM architecture and agents, AI in medicine and autodiscovery, the idea of systems that can run a research loop on their own. I'm slowly steering toward robotics and AI alignment keeps climbing higher on my list.",
-    intro2: "A lot of what I work on starts as a question I cannot put down. How should agents share what they know without burying each other in text, when should a model slow down and actually think, how do you learn from data that no one had time to label. Some of those questions become blog notes, and a few grow into projects.",
-    intro3: "A project close to me is Spending Rail, a banking layer for autonomous agents picked for Phase 2 of the TinyFish Accelerator, backed by Mango Capital with access to a 2 million dollar seed pool. I'm also building Val, a local AI companion on an old phone. I also spend an unreasonable amount of time on AI Twitter, YouTube talks, newsletters, and paper threads, mostly because I want to know what is changing and understand as much of it as I can.",
+    intro: "My interests sit around LLM architecture and agents, AI in medicine and autodiscovery, the idea of systems that can run a research loop on their own. I'm slowly steering toward robotics, especially how LLMs fit into it. Electronics keeps moving higher on my list, too.",
+    intro2: "A project close to me is Spending Rail, a banking layer for autonomous agents picked for Phase 2 of the TinyFish Accelerator, backed by Mango Capital with access to a 2 million dollar seed pool.",
+    intro3: "Now I'm also building Val, a local AI companion on an old phone. A future goal is to let the agents on the phone communicate in latent space instead of natural language, reducing the tokens spent on coordination.",
+    intro4: "I also spend an unreasonable amount of time on AI Twitter, YouTube talks, newsletters, and paper threads, mostly because I want to know what is changing and understand as much of it as I can.",
     interests: "Lately I care more about making models think well than making them bigger. My thesis, Arthantar, was built around that idea: smaller language models can beat larger ones on hard translation when the framework gives them coreference, gender, and graph context first. My newer work looks at agents coordinating through hidden states instead of long text messages, and an earlier paper of mine used topic models to read disaster tweets.",
     interests2: "When the research loop gets too loud, I usually end up sketching, revisiting a Beyblade idea, or watching a dense talk that sends me back into my notes. The serious and non-serious parts are not fully separate; both are me trying to understand why a system behaves the way it does.",
     hobbies: "Away from the screen, my favourite anime is Steins;Gate and my favourite manga is Oyasumi PunPun. The rest of my downtime goes to drawing, small mechanical obsessions, and keeping an eye on where AI is headed next.",
@@ -279,6 +280,7 @@ function renderHome() {
         <p>${escapeHtml(profile.intro)}</p>
         <p>${escapeHtml(profile.intro2)}</p>
         <p>${escapeHtml(profile.intro3)}</p>
+        <p>${escapeHtml(profile.intro4)}</p>
       </div>
 
       <section class="block education-block">
