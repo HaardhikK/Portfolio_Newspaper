@@ -1,6 +1,7 @@
 import { definitionFor } from '../assets/vendor/alvalta/model.js?v=device-sampling';
 import { BodyField, DEFORM_BANDS, smoothstep } from '../assets/vendor/alvalta/body-field.js';
 import envelopes from '../assets/vendor/alvalta/envelopes.js';
+import { createFrameClock } from './creature-clock.js';
 
 export function createCreatureEngine(canvas, settings) {
   const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
@@ -8,10 +9,11 @@ export function createCreatureEngine(canvas, settings) {
   const mobileLayout = { matches: settings.mobile };
   let hidden = false;
   const schedule = callback => typeof requestAnimationFrame === 'function'
-    ? requestAnimationFrame(callback) : setTimeout(() => callback(performance.now()), 1000 / 30);
+    ? requestAnimationFrame(callback) : setTimeout(() => callback(performance.now()), 1000 / 60);
   const cancel = handle => typeof cancelAnimationFrame === 'function'
     ? cancelAnimationFrame(handle) : clearTimeout(handle);
-  const metrics = { frames: 0, totalDrawMs: 0, maxDrawMs: 0 };
+  const metrics = { frames: 0, totalDrawMs: 0, maxDrawMs: 0, simulationSeconds: 0, shapeUpdates: 0 };
+  let clock = createFrameClock(settings.mobile && !settings.lightweight ? 60 : 30);
 
   function definitionForDevice(id) {
     const original = definitionFor(id);
@@ -36,7 +38,6 @@ export function createCreatureEngine(canvas, settings) {
     palette: bodyPalette(definitionFor(id)),
     brushes: [],
     field: new BodyField(definitionForDevice(id), envelopes[id], index ? 3.51 : 1.17),
-    lastShapeUpdate: -Infinity,
     shapePhase: index ? 3.51 : 1.17,
     deformX: new Float32Array(DEFORM_BANDS),
     deformY: new Float32Array(DEFORM_BANDS),
@@ -58,7 +59,6 @@ export function createCreatureEngine(canvas, settings) {
   let height = 0;
   let paperLeft = 0;
   let paperRight = 0;
-  let last = 0;
   let frame = 0;
   const point = new Float64Array(2);
 
@@ -66,6 +66,7 @@ export function createCreatureEngine(canvas, settings) {
     settings = next;
     mobileLayout.matches = next.mobile;
     reducedMotion.matches = next.reducedMotion;
+    clock = createFrameClock(next.mobile && !next.lightweight ? 60 : 30);
     width = next.width;
     height = next.height;
     const ratio = Math.min(next.pixelRatio || 1, next.mobile ? 1 : 1.5);
@@ -78,7 +79,6 @@ export function createCreatureEngine(canvas, settings) {
     for (const swimmer of swimmers) {
       swimmer.palette = bodyPalette(swimmer.definition);
       swimmer.brushes = swimmer.palette.map(pigment);
-      swimmer.lastShapeUpdate = -Infinity;
     }
     draw();
   }
@@ -138,10 +138,8 @@ export function createCreatureEngine(canvas, settings) {
     const stride = 1;
     for (const swimmer of swimmers) {
       const { field, definition } = swimmer;
-      if (!mobileLayout.matches || started - swimmer.lastShapeUpdate >= 1000 / (settings.lightweight ? 12 : 15)) {
-        field.advance(swimmer.shapePhase);
-        swimmer.lastShapeUpdate = started;
-      }
+      field.advance(swimmer.shapePhase);
+      metrics.shapeUpdates++;
       let x = swimmer.x * width;
       let y = swimmer.y * height;
       const radius = definition.visualRadius * scale;
@@ -202,10 +200,10 @@ export function createCreatureEngine(canvas, settings) {
   function tick(now) {
     frame = 0;
     if (hidden) return;
-    if (now - last >= 1000 / (mobileLayout.matches && settings.lightweight ? 24 : 30)) {
-      const dt = Math.min((now - (last || now)) / 1000, 0.1)
-        * (mobileLayout.matches ? 0.55 : 1) * (reducedMotion.matches ? 0.15 : 1);
-      last = now;
+    const wallTime = clock.step(now);
+    if (wallTime !== null) {
+      const dt = wallTime * (mobileLayout.matches ? 0.55 : 1) * (reducedMotion.matches ? 0.15 : 1);
+      metrics.simulationSeconds += dt;
       elapsed += dt;
       wander(dt);
       draw();
@@ -215,7 +213,7 @@ export function createCreatureEngine(canvas, settings) {
 
   function syncPlayback() {
     cancel(frame);
-    last = 0;
+    clock.reset();
     draw();
     if (!hidden) frame = schedule(tick);
   }

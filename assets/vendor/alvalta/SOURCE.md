@@ -13,8 +13,10 @@ using the original `measureReferenceEnvelope(definitionFor(id))` for each body.
 Pika and Inbyo accept a sampling-step argument: every third original sample on
 desktop, every eighth on mobile in the worker, or every twelfth in the
 main-thread fallback. Their equations and full parameter range remain the same.
-Mobile refreshes the raw equation body at 15 Hz while carrying and deforming it
-at 30 Hz. The fallback uses 12/24 Hz. The flat-color creature needs only one path.
+Mobile workers target 60 Hz and refresh shape and pose together on every rendered
+frame. The lightweight fallback targets 30 Hz, also without cached shape jumps.
+The flat-color creature needs only one path. A deadline-based frame clock avoids
+the repeated frame skips caused by resetting a timer on high-refresh displays.
 The upstream project credits @yuruyurau as base inspiration, with original designs.
 
 `js/creatures.js` controls worker startup, resize and visibility. The shared

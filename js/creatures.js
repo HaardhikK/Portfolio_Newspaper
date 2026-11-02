@@ -25,7 +25,7 @@ function visibility() {
 async function start() {
   if (typeof Worker !== 'undefined' && typeof canvas.transferControlToOffscreen === 'function') {
     try {
-      worker = new Worker(new URL('./creature-worker.js?v=mobile-performance', import.meta.url), { type: 'module' });
+      worker = new Worker(new URL('./creature-worker.js?v=smooth-cadence', import.meta.url), { type: 'module' });
       const options = settings();
       const offscreen = canvas.transferControlToOffscreen();
       transferred = true;
@@ -50,7 +50,7 @@ async function start() {
     }
   }
   if (!worker) {
-    const { createCreatureEngine } = await import('./creature-engine.js');
+    const { createCreatureEngine } = await import('./creature-engine.js?v=smooth-cadence');
     fallback = createCreatureEngine(canvas, settings());
   }
   performance.mark('creatures:ready');

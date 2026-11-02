@@ -27,6 +27,10 @@ fallback. Mobile uses fewer equation samples, a lower canvas pixel ratio, and
 slower motion. The worker and engine are ordinary same-origin JavaScript files;
 they do not require Netlify Functions or special deployment headers.
 
+Frame-timing regression checks can optionally be run locally with
+`node --test tests/creature-clock.test.mjs`. They use only Node's built-in test
+runner; this is not a Netlify build step or runtime dependency.
+
 Use these settings when connecting this repository to Netlify:
 
 - Build command: leave blank
