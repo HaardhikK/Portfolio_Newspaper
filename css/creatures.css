@@ -18,7 +18,8 @@ body { background: var(--paper); }
   background: var(--paper);
   box-shadow: 0 0 0 2px var(--paper);
 }
-.masthead { z-index: 24; }
+/* Keep the sticky name/navigation above both photos (26) and artwork (25). */
+.masthead { z-index: 27; }
 #creature-overlay {
   position: fixed;
   inset: 0;
