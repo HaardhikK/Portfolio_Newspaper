@@ -84,8 +84,11 @@ export function createCreatureEngine(canvas, settings) {
   }
 
   function wander(dt) {
+    // Keep body animation on its existing clock; only slow mobile roaming.
+    const travelRate = mobileLayout.matches ? 0.2 : 1;
+    const travelDt = dt * travelRate;
     for (const swimmer of swimmers) {
-      swimmer.targetAge += dt;
+      swimmer.targetAge += travelDt;
       let dx = (swimmer.targetX - swimmer.x) * width;
       let dy = (swimmer.targetY - swimmer.y) * height;
       if (swimmer.targetAge > swimmer.nextTarget || Math.hypot(dx, dy) < 65) {
@@ -102,16 +105,16 @@ export function createCreatureEngine(canvas, settings) {
       }
       dx = (swimmer.targetX - swimmer.x) * width;
       dy = (swimmer.targetY - swimmer.y) * height;
-      const aim = Math.atan2(dy, dx) + Math.sin(elapsed * 0.31 + swimmer.phase) * 0.22;
+      const aim = Math.atan2(dy, dx) + Math.sin(elapsed * 0.31 * travelRate + swimmer.phase) * 0.22;
       const turn = Math.atan2(Math.sin(aim - swimmer.angle), Math.cos(aim - swimmer.angle));
       const wantedTurn = Math.max(-0.65, Math.min(0.65, turn * 1.8));
       swimmer.turnRate += (wantedTurn - swimmer.turnRate) * (1 - Math.exp(-dt / 0.35));
-      swimmer.angle += swimmer.turnRate * dt;
+      swimmer.angle += swimmer.turnRate * travelDt;
       if (swimmer.bodyAngle === null) swimmer.bodyAngle = swimmer.angle;
       const bodyTurn = Math.atan2(Math.sin(swimmer.angle - swimmer.bodyAngle), Math.cos(swimmer.angle - swimmer.bodyAngle));
       swimmer.bodyAngle += bodyTurn * (1 - Math.exp(-dt / 0.65));
-      swimmer.x += Math.cos(swimmer.angle) * swimmer.speed * dt / width;
-      swimmer.y += Math.sin(swimmer.angle) * swimmer.speed * dt / height;
+      swimmer.x += Math.cos(swimmer.angle) * swimmer.speed * travelDt / width;
+      swimmer.y += Math.sin(swimmer.angle) * swimmer.speed * travelDt / height;
       swimmer.shapePhase += swimmer.definition.timeStep * 60 * swimmer.definition.phaseRateScale * dt * 1.6;
     }
   }

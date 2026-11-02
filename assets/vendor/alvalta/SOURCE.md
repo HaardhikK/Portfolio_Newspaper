@@ -32,7 +32,9 @@ keeps the colored body everywhere, with no special treatment over text. Mobile
 fits the full projected body into the viewport using a smooth position mapping,
 without changing the original wandering or adding edge bounces. Desktop keeps gray ink over the paper and
 colored bodies in the margins. The second creature uses pastel mint; Pika keeps
-its original palette. Mobile advances the motion clock at 55% of desktop speed.
+its original palette. Mobile advances the body-animation clock at 55% of desktop
+speed. Its travel/turning clock runs at a further 20% of that rate so it drifts
+gently without suppressing the internal animation.
 Its canvas uses a 1x pixel ratio and a stable small-viewport height so changing
 phone browser toolbars does not repeatedly resize the artwork.
 No build step or network
