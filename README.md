@@ -16,6 +16,12 @@ Opening `index.html` directly also works for Home, Projects, and Contact through
 
 ## Netlify
 
+The creature experiment is also plain static JavaScript. Keep the build command
+blank and publish directory `.`. No Vercel, server, Functions, Node runtime, or
+external CDN is required. The animation loads after the portfolio paints; a
+failure in the artwork does not block the site. Creature bounds are precomputed
+in `assets/vendor/alvalta/envelopes.js`, not measured during visitor startup.
+
 Use these settings when connecting this repository to Netlify:
 
 - Build command: leave blank

@@ -165,6 +165,7 @@ async function renderRoute() {
   requestAnimationFrame(() => {
     const view = content.querySelector(".view");
     if (view) view.classList.add("is-visible");
+    document.dispatchEvent(new Event('portfolio:ready'));
   });
   content.focus({ preventScroll: true });
   window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -455,7 +456,7 @@ function renderProjects() {
         <figcaption class="cap">${escapeHtml(PHOTOS.projects.caption)}</figcaption>
       </figure>
 
-      ${workGroup("Building", projects, (p) => itemRow(p.date, p.title, p.blurb, p.stack, p.link, p.link && p.link.includes("x.com") ? "Link" : "GitHub"))}
+      ${workGroup("", projects, (p) => itemRow(p.date, p.title, p.blurb, p.stack, p.link, p.link && p.link.includes("x.com") ? "Link" : "GitHub"))}
       ${workGroup("Research", research, (p) => itemRow(p.date, p.title, p.blurb, p.stack, p.link, "GitHub"))}
       ${workGroup("Published", publications, (p) => itemRow(`${p.venue} · ${p.year}`, p.title, p.blurb, p.tags, p.link, "Read"))}
       ${workGroup("Experience", experience, (e) => itemRow(e.date, `${e.role}, ${e.org}`, e.blurb, null, null, null))}
@@ -467,7 +468,7 @@ function workGroup(label, items, renderItem) {
   if (!items || !items.length) return "";
   return `
     <section class="block">
-      <p class="label">${escapeHtml(label)}</p>
+      ${label ? `<h2 class="work-heading">${escapeHtml(label)}</h2>` : ""}
       <ul class="item-list">${items.map(renderItem).join("")}</ul>
     </section>`;
 }
