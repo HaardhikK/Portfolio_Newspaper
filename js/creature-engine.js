@@ -12,7 +12,7 @@ export function createCreatureEngine(canvas, settings) {
     ? requestAnimationFrame(callback) : setTimeout(() => callback(performance.now()), 1000 / 60);
   const cancel = handle => typeof cancelAnimationFrame === 'function'
     ? cancelAnimationFrame(handle) : clearTimeout(handle);
-  const metrics = { frames: 0, totalDrawMs: 0, maxDrawMs: 0, simulationSeconds: 0, shapeUpdates: 0 };
+  const metrics = { frames: 0, totalDrawMs: 0, maxDrawMs: 0, simulationSeconds: 0, bodySeconds: 0, shapeUpdates: 0 };
   let clock = createFrameClock(settings.mobile && !settings.lightweight ? 60 : 30);
 
   function definitionForDevice(id) {
@@ -24,7 +24,7 @@ export function createCreatureEngine(canvas, settings) {
   function bodyPalette(definition) {
     const stops = definition.gradient ?? [definition.id === 'arc' ? '#a4d8bd' : definition.color];
     const rgb = stops.map(color => [1, 3, 5].map(offset => parseInt(color.slice(offset, offset + 2), 16)));
-    const count = stops.length === 1 ? 1 : mobileLayout.matches ? 16 : 32;
+    const count = stops.length === 1 ? 1 : 32;
     return Array.from({ length: count }, (_, index) => {
       const position = index / Math.max(1, count - 1) * (rgb.length - 1);
       const first = Math.floor(position), last = Math.min(rgb.length - 1, first + 1);
@@ -69,7 +69,7 @@ export function createCreatureEngine(canvas, settings) {
     clock = createFrameClock(next.mobile && !next.lightweight ? 60 : 30);
     width = next.width;
     height = next.height;
-    const ratio = Math.min(next.pixelRatio || 1, next.mobile ? 1 : 1.5);
+    const ratio = Math.min(next.pixelRatio || 1, 1.5);
     const pixelWidth = Math.round(width * ratio), pixelHeight = Math.round(height * ratio);
     if (canvas.width !== pixelWidth) canvas.width = pixelWidth;
     if (canvas.height !== pixelHeight) canvas.height = pixelHeight;
@@ -88,12 +88,10 @@ export function createCreatureEngine(canvas, settings) {
     draw();
   }
 
-  function wander(dt) {
-    // Keep body animation on its existing clock; only slow mobile roaming.
-    const travelRate = mobileLayout.matches ? 0.2 : 1;
+  function wander(dt, bodyDt = dt) {
+    const travelRate = mobileLayout.matches ? 0.1 : 1;
     const travelDt = dt * travelRate;
     for (const swimmer of swimmers) {
-      if (mobileLayout.matches && swimmer.definition.id === 'arc') continue;
       swimmer.targetAge += travelDt;
       let dx = (swimmer.targetX - swimmer.x) * width;
       let dy = (swimmer.targetY - swimmer.y) * height;
@@ -122,7 +120,7 @@ export function createCreatureEngine(canvas, settings) {
         ? swimmer.angle : swimmer.bodyAngle + bodyTurn * (1 - Math.exp(-dt / 0.65));
       swimmer.x += Math.cos(swimmer.angle) * swimmer.speed * travelDt / width;
       swimmer.y += Math.sin(swimmer.angle) * swimmer.speed * travelDt / height;
-      swimmer.shapePhase += swimmer.definition.timeStep * 60 * swimmer.definition.phaseRateScale * dt * 1.6;
+      swimmer.shapePhase += swimmer.definition.timeStep * 60 * swimmer.definition.phaseRateScale * bodyDt * 1.6;
     }
   }
 
@@ -156,7 +154,6 @@ export function createCreatureEngine(canvas, settings) {
     const scale = Math.min(width, height) * (width < 720 ? 0.8 : 0.88);
     const stride = 1;
     for (const swimmer of swimmers) {
-      if (mobileLayout.matches && swimmer.definition.id === 'arc') continue;
       const { field, definition } = swimmer;
       field.advance(swimmer.shapePhase);
       metrics.shapeUpdates++;
@@ -184,15 +181,16 @@ export function createCreatureEngine(canvas, settings) {
       }
       let offsetX = 0, offsetY = 0, fit = 1;
       if (mobileLayout.matches) {
-        // Fit the visible body, not just its head. A smooth mapping has no edge
-        // clamps, teleports or direction flips; the original wandering is unchanged.
+        // Keep the travel area fixed: changing it with every shape frame makes
+        // the whole creature slide sideways even when its head barely moves.
         offsetX = sumX / count;
         offsetY = sumY / count;
         const halfX = Math.max(offsetX - minX, maxX - offsetX);
         const halfY = Math.max(offsetY - minY, maxY - offsetY);
-        fit = Math.min(1, (width - 24) / (2 * halfX), (height - 24) / (2 * halfY));
-        const rangeX = Math.max(0, width / 2 - halfX * fit - 12);
-        const rangeY = Math.max(0, height / 2 - halfY * fit - 12);
+        const safeRadius = Math.max(1, Math.min(width, height) * 0.4 - 12);
+        fit = Math.min(1, safeRadius / halfX, safeRadius / halfY);
+        const rangeX = Math.max(0, width / 2 - safeRadius - 12);
+        const rangeY = Math.max(0, height / 2 - safeRadius - 12);
         x = width / 2 + rangeX * Math.tanh((swimmer.x - 0.5) * 3);
         y = height / 2 + rangeY * Math.tanh((swimmer.y - 0.5) * 3);
       }
@@ -202,7 +200,7 @@ export function createCreatureEngine(canvas, settings) {
       for (let sample = 0, i = 0; sample < count; sample++, i += stride) {
         const band = Math.max(0, Math.min(paths.length - 1, Math.floor(field.longitudinal[i] * (paths.length - 1))));
         paths[band].rect(x + (swimmer.projected[sample * 2] - offsetX) * fit,
-          y + (swimmer.projected[sample * 2 + 1] - offsetY) * fit, mobileLayout.matches ? 1 : 0.8, mobileLayout.matches ? 1 : 0.8);
+          y + (swimmer.projected[sample * 2 + 1] - offsetY) * fit, 0.8, 0.8);
       }
       for (let band = 0; band < paths.length; band++) {
         ctx.fillStyle = mobileLayout.matches ? swimmer.palette[band] : swimmer.brushes[band];
@@ -221,9 +219,11 @@ export function createCreatureEngine(canvas, settings) {
     const wallTime = clock.step(now);
     if (wallTime !== null) {
       const dt = wallTime * (mobileLayout.matches ? 0.55 : 1) * (reducedMotion.matches ? 0.15 : 1);
+      const bodyDt = mobileLayout.matches ? Math.min(dt, 1 / 30) * 0.25 : dt;
       metrics.simulationSeconds += dt;
-      elapsed += dt;
-      wander(dt);
+      metrics.bodySeconds += bodyDt;
+      elapsed += bodyDt;
+      wander(dt, bodyDt);
       draw();
     }
     frame = schedule(tick);
