@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const source = readFileSync(new URL('../js/creature-engine.js', import.meta.url), 'utf8');
-const bodyWave = source.slice(source.indexOf('  function bodyWave('), source.indexOf('  function draw()'));
+const bodyWave = source.slice(source.indexOf('  function bodyWave('), source.indexOf('  function paintHeader('));
 const anatomy = { wave: 0.11, rampStart: 0.44, wavelength: 1.1, waveRate: 0.18 };
 const smoothstep = (a, b, x) => {
   const t = Math.max(0, Math.min(1, (x - a) / (b - a)));

@@ -5,7 +5,7 @@ function scheduleCreatures() {
   scheduled = true;
   // Yield two frames so the portfolio paints before the optional artwork starts.
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    const start = () => import('./creatures.js?v=header-creature-layer').catch(error => {
+    const start = () => import('./creatures.js?v=colored-header').catch(error => {
       console.info('Creature artwork unavailable; portfolio remains usable.', error);
     });
     if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 500 });

@@ -80,6 +80,7 @@ export function createCreatureEngine(canvas, settings, headerCanvas = null) {
       const headerHeight = Math.round(next.headerHeight * ratio);
       if (headerCanvas.width !== headerWidth) headerCanvas.width = headerWidth;
       if (headerCanvas.height !== headerHeight) headerCanvas.height = headerHeight;
+      headerCtx.setTransform(ratio, 0, 0, ratio, -next.headerLeft * ratio, 0);
     }
     paperLeft = next.paperLeft;
     paperRight = next.paperRight;
@@ -179,9 +180,18 @@ export function createCreatureEngine(canvas, settings, headerCanvas = null) {
       * Math.sin(Math.PI * 2 * (u / anatomy.wavelength - elapsed * anatomy.waveRate * 1.6));
   }
 
+  function paintHeader(paths, palette) {
+    if (!headerCtx) return;
+    for (let band = 0; band < paths.length; band++) {
+      headerCtx.fillStyle = palette[band];
+      headerCtx.fill(paths[band]);
+    }
+  }
+
   function draw() {
     const started = performance.now();
     ctx.clearRect(0, 0, width, height);
+    headerCtx?.clearRect(settings.headerLeft, 0, settings.headerWidth, settings.headerHeight);
     const scale = Math.min(width, height) * (width < 720 ? 0.8 : 0.88);
     const stride = 1;
     for (const swimmer of swimmers) {
@@ -237,12 +247,7 @@ export function createCreatureEngine(canvas, settings, headerCanvas = null) {
         ctx.fillStyle = mobileLayout.matches ? swimmer.palette[band] : swimmer.brushes[band];
         ctx.fill(paths[band]);
       }
-    }
-    if (headerCtx) {
-      const ratio = canvas.width / width;
-      headerCtx.clearRect(0, 0, headerCanvas.width, headerCanvas.height);
-      headerCtx.drawImage(canvas, Math.round(settings.headerLeft * ratio), 0,
-        headerCanvas.width, headerCanvas.height, 0, 0, headerCanvas.width, headerCanvas.height);
+      paintHeader(paths, swimmer.palette);
     }
     const duration = performance.now() - started;
     metrics.frames++;

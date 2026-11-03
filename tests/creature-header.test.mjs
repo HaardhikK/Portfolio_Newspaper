@@ -4,22 +4,17 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const source = readFileSync(new URL('../js/creature-engine.js', import.meta.url), 'utf8');
-const copy = source.slice(source.indexOf('    if (headerCtx) {'),
-  source.indexOf('    const duration = performance.now() - started;'));
+const paint = source.slice(source.indexOf('  function paintHeader('), source.indexOf('  function draw()'));
 
-test('header artwork copies only the exact header crop, clearing old frames first', () => {
-  for (const ratio of [1, 1.5]) {
-    const calls = [];
-    const canvas = { width: 1440 * ratio };
-    const headerCanvas = { width: 744 * ratio, height: 90 * ratio };
-    vm.runInNewContext(copy, { canvas, headerCanvas, width: 1440,
-      settings: { headerLeft: 348 }, Math,
-      headerCtx: { clearRect: (...args) => calls.push(['clear', ...args]),
-        drawImage: (...args) => calls.push(['copy', ...args]) } });
-    assert.deepEqual(calls, [
-      ['clear', 0, 0, headerCanvas.width, headerCanvas.height],
-      ['copy', canvas, 348 * ratio, 0, headerCanvas.width, headerCanvas.height,
-        0, 0, headerCanvas.width, headerCanvas.height],
-    ]);
-  }
+test('header uses original creature colors and reuses the exact body paths', () => {
+  const calls = [];
+  const paths = [{ id: 'head' }, { id: 'tail' }];
+  const palette = ['rgb(255,77,134)', 'rgb(255,193,50)'];
+  const headerCtx = { fillStyle: null, fill(path) { calls.push([path, this.fillStyle]); } };
+  vm.runInNewContext(`${paint}\npaintHeader(paths, palette);`, { paths, palette, headerCtx });
+  assert.deepEqual(calls, [[paths[0], palette[0]], [paths[1], palette[1]]]);
+});
+
+test('rendering remains valid without an optional header layer', () => {
+  vm.runInNewContext(`${paint}\npaintHeader([], []);`, { headerCtx: null });
 });

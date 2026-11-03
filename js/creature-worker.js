@@ -1,4 +1,4 @@
-import { createCreatureEngine } from './creature-engine.js?v=header-creature-layer';
+import { createCreatureEngine } from './creature-engine.js?v=colored-header';
 
 let engine;
 self.onmessage = ({ data }) => {
