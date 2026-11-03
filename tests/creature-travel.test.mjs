@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { createFrameClock } from '../js/creature-clock.js';
 
 // Exercise the actual engine function without a browser or a drawing context.
 const source = readFileSync(new URL('../js/creature-engine.js', import.meta.url), 'utf8');
@@ -11,7 +12,7 @@ function advance(mobile, angle = 0, id = 'filament') {
   const swimmer = {
     x: 0.4, y: 0.4, angle, bodyAngle: angle, turnRate: 0,
     targetX: 0.9, targetY: 0.4, targetAge: 0, nextTarget: 20,
-    speed: 40, phase: -0.31 * (mobile ? 0.15 : 1), shapePhase: 0,
+    speed: 40, phase: -0.31 * (mobile ? 0.15 : 0.35), shapePhase: 0,
     definition: { id, timeStep: 1 / 60, phaseRateScale: 1 },
   };
   vm.runInNewContext(`${wander}\nwander(1);`, {
@@ -24,7 +25,7 @@ function advance(mobile, angle = 0, id = 'filament') {
 test('mobile travel is 50% faster than the previous gentle setting', () => {
   const mobile = advance(true), desktop = advance(false);
   assert(Math.abs((mobile.x - 0.4) * 390 - 6) < 1e-8);
-  assert(Math.abs((desktop.x - 0.4) * 390 - 40) < 1e-8);
+  assert(Math.abs((desktop.x - 0.4) * 390 - 14) < 1e-8);
   assert.equal(mobile.shapePhase, desktop.shapePhase);
   assert.equal(mobile.shapePhase, 1.6);
 });
@@ -33,7 +34,7 @@ test('mobile heading changes are reduced without changing the body clock', () =>
   const mobile = advance(true, Math.PI / 2), desktop = advance(false, Math.PI / 2);
   const mobileTurn = Math.PI / 2 - mobile.angle;
   const desktopTurn = Math.PI / 2 - desktop.angle;
-  assert(Math.abs(mobileTurn / desktopTurn - 0.15) < 1e-8);
+  assert(Math.abs(mobileTurn / desktopTurn - 0.15 / 0.35) < 1e-8);
   assert.equal(mobile.shapePhase, desktop.shapePhase);
 });
 
@@ -101,4 +102,31 @@ test('mobile retargets in body-independent seconds and stays in separate destina
   assert.equal(swimmers[1].targetAge, 0);
   assert(swimmers[0].targetY >= 0.16 && swimmers[0].targetY <= 0.42);
   assert(swimmers[1].targetY >= 0.58 && swimmers[1].targetY <= 0.84);
+});
+
+test('desktop travel and body animation are equal at 60, 120 and 144 Hz', () => {
+  const results = [];
+  for (const refresh of [60, 120, 144]) {
+    const swimmer = { definition: { id: 'filament', timeStep: 1 / 60, phaseRateScale: 1 },
+      x: 0.4, y: 0.4, angle: 0, bodyAngle: 0, turnRate: 0,
+      targetX: 0.9, targetY: 0.4, targetAge: 0, nextTarget: 100,
+      speed: 40, phase: 0, shapePhase: 0 };
+    // Hold the noise phase at zero to isolate travel speed from steering.
+    const context = vm.createContext({ swimmers: [swimmer], width: 1440, height: 900,
+      mobileLayout: { matches: false }, elapsed: 0, Math, dt: 0 });
+    vm.runInContext(wander, context);
+    const clock = createFrameClock(30);
+    for (let frame = 0; frame <= refresh * 10; frame++) {
+      const dt = clock.step(frame * 1000 / refresh);
+      if (dt !== null) {
+        context.dt = dt;
+        vm.runInContext('wander(dt, dt);', context);
+      }
+    }
+    results.push({ pixels: (swimmer.x - 0.4) * 1440, phase: swimmer.shapePhase });
+  }
+  for (const result of results) {
+    assert(Math.abs(result.pixels - 140) < 1e-6);
+    assert(Math.abs(result.phase - 16) < 1e-6);
+  }
 });

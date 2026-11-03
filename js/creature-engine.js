@@ -106,7 +106,7 @@ export function createCreatureEngine(canvas, settings, headerCanvas = null) {
   }
 
   function wander(dt, bodyDt = dt) {
-    const travelRate = mobileLayout.matches ? 0.15 : 1;
+    const travelRate = mobileLayout.matches ? 0.15 : 0.35;
     const travelDt = dt * travelRate;
     for (const swimmer of swimmers) {
       swimmer.targetAge += mobileLayout.matches ? dt : travelDt;
