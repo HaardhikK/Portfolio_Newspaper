@@ -12,7 +12,7 @@ function advance(mobile, angle = 0, id = 'filament') {
   const swimmer = {
     x: 0.4, y: 0.4, angle, bodyAngle: angle, turnRate: 0,
     targetX: 0.9, targetY: 0.4, targetAge: 0, nextTarget: 20,
-    speed: 40, phase: -0.31 * (mobile ? 0.15 : 0.35), shapePhase: 0,
+    speed: 40, phase: -0.31 * (mobile ? 0.15 : 1), shapePhase: 0,
     definition: { id, timeStep: 1 / 60, phaseRateScale: 1 },
   };
   vm.runInNewContext(`${wander}\nwander(1);`, {
@@ -25,7 +25,7 @@ function advance(mobile, angle = 0, id = 'filament') {
 test('mobile travel is 50% faster than the previous gentle setting', () => {
   const mobile = advance(true), desktop = advance(false);
   assert(Math.abs((mobile.x - 0.4) * 390 - 6) < 1e-8);
-  assert(Math.abs((desktop.x - 0.4) * 390 - 14) < 1e-8);
+  assert(Math.abs((desktop.x - 0.4) * 390 - 40) < 1e-8);
   assert.equal(mobile.shapePhase, desktop.shapePhase);
   assert.equal(mobile.shapePhase, 1.6);
 });
@@ -34,7 +34,7 @@ test('mobile heading changes are reduced without changing the body clock', () =>
   const mobile = advance(true, Math.PI / 2), desktop = advance(false, Math.PI / 2);
   const mobileTurn = Math.PI / 2 - mobile.angle;
   const desktopTurn = Math.PI / 2 - desktop.angle;
-  assert(Math.abs(mobileTurn / desktopTurn - 0.15 / 0.35) < 1e-8);
+  assert(Math.abs(mobileTurn / desktopTurn - 0.15) < 1e-8);
   assert.equal(mobile.shapePhase, desktop.shapePhase);
 });
 
@@ -119,14 +119,14 @@ test('desktop travel and body animation are equal at 60, 120 and 144 Hz', () => 
     for (let frame = 0; frame <= refresh * 10; frame++) {
       const dt = clock.step(frame * 1000 / refresh);
       if (dt !== null) {
-        context.dt = dt;
+        context.dt = dt * 0.15;
         vm.runInContext('wander(dt, dt);', context);
       }
     }
     results.push({ pixels: (swimmer.x - 0.4) * 1440, phase: swimmer.shapePhase });
   }
   for (const result of results) {
-    assert(Math.abs(result.pixels - 140) < 1e-6);
-    assert(Math.abs(result.phase - 16) < 1e-6);
+    assert(Math.abs(result.pixels - 60) < 1e-6);
+    assert(Math.abs(result.phase - 2.4) < 1e-6);
   }
 });

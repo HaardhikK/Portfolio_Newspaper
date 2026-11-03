@@ -106,7 +106,7 @@ export function createCreatureEngine(canvas, settings, headerCanvas = null) {
   }
 
   function wander(dt, bodyDt = dt) {
-    const travelRate = mobileLayout.matches ? 0.15 : 0.35;
+    const travelRate = mobileLayout.matches ? 0.15 : 1;
     const travelDt = dt * travelRate;
     for (const swimmer of swimmers) {
       swimmer.targetAge += mobileLayout.matches ? dt : travelDt;
@@ -260,7 +260,10 @@ export function createCreatureEngine(canvas, settings, headerCanvas = null) {
     if (hidden) return;
     const wallTime = clock.step(now);
     if (wallTime !== null) {
-      const dt = wallTime * (mobileLayout.matches ? 0.55 : 1) * (reducedMotion.matches ? 0.15 : 1);
+      // Desktop always uses the gentle pace, rather than allowing a 6.7x
+      // difference between browsers reporting different motion preferences.
+      const rate = mobileLayout.matches ? 0.55 * (reducedMotion.matches ? 0.15 : 1) : 0.15;
+      const dt = wallTime * rate;
       const bodyDt = mobileLayout.matches ? Math.min(dt, 1 / 30) * 0.375 : dt;
       metrics.simulationSeconds += dt;
       metrics.bodySeconds += bodyDt;

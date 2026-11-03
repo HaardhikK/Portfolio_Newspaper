@@ -18,7 +18,15 @@ function step(mobile, wallTime, reduced = false) {
 test('mobile body clock is 50% faster than the previous gentle setting', () => {
   const { travel, body } = step(true, 1 / 60);
   assert.equal(body, travel * 0.25 * 1.5);
-  assert.equal(step(false, 1 / 60).body, 1 / 60);
+  assert.equal(step(false, 1 / 60).body, 1 / 60 * 0.15);
+});
+
+test('desktop travel and internal animation share the same slow pace across motion preferences', () => {
+  for (const reduced of [false, true]) {
+    const result = step(false, 1 / 30, reduced);
+    assert.equal(result.travel, 1 / 30 * 0.15);
+    assert.equal(result.body, result.travel);
+  }
 });
 
 test('late mobile frames cannot cause a large body animation jump', () => {
