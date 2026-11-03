@@ -1,4 +1,4 @@
-import { createCreatureEngine } from './creature-engine.js?v=consistent-desktop-rhythm';
+import { createCreatureEngine } from './creature-engine.js?v=mobile-gray-creatures';
 
 let engine;
 self.onmessage = ({ data }) => {

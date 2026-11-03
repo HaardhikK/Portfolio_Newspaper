@@ -34,7 +34,7 @@ test('late mobile frames cannot cause a large body animation jump', () => {
   assert(step(true, 1 / 60, true).body < step(true, 1 / 60).body);
 });
 
-test('mobile Pika uses the full desktop gradient and retains mint for Inbyo', () => {
+test('both mobile creatures stay gray while desktop gradients and mint remain unchanged', () => {
   const palette = source.slice(source.indexOf('  function bodyPalette('), source.indexOf('  const swimmers'));
   function colors(mobile, definition) {
     return Array.from(vm.runInNewContext(`${palette}\nbodyPalette(definition);`, {
@@ -42,11 +42,12 @@ test('mobile Pika uses the full desktop gradient and retains mint for Inbyo', ()
     }));
   }
   const pika = { id: 'filament', gradient: ['#FF4D86', '#FF7A4D', '#FFC132'] };
-  assert.deepEqual(colors(true, pika), colors(false, pika));
-  assert.equal(colors(true, pika).length, 32);
-  assert.equal(colors(true, pika)[0], 'rgb(255,77,134)');
-  assert.equal(colors(true, pika).at(-1), 'rgb(255,193,50)');
-  assert.deepEqual(colors(true, { id: 'arc' }), ['rgb(164,216,189)']);
+  assert.deepEqual(colors(true, pika), ['rgba(55,55,55,0.62)']);
+  assert.deepEqual(colors(true, { id: 'arc' }), ['rgba(55,55,55,0.62)']);
+  assert.equal(colors(false, pika).length, 32);
+  assert.equal(colors(false, pika)[0], 'rgb(255,77,134)');
+  assert.equal(colors(false, pika).at(-1), 'rgb(255,193,50)');
+  assert.deepEqual(colors(false, { id: 'arc' }), ['rgb(164,216,189)']);
 });
 
 test('changing the silhouette cannot move the mobile travel center or escape the screen', () => {

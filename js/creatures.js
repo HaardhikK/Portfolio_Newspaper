@@ -32,7 +32,7 @@ function visibility() {
 async function start() {
   if (typeof Worker !== 'undefined' && typeof canvas.transferControlToOffscreen === 'function') {
     try {
-      worker = new Worker(new URL('./creature-worker.js?v=consistent-desktop-rhythm', import.meta.url), { type: 'module' });
+      worker = new Worker(new URL('./creature-worker.js?v=mobile-gray-creatures', import.meta.url), { type: 'module' });
       const options = settings();
       const offscreen = canvas.transferControlToOffscreen();
       transferred = true;
@@ -62,7 +62,7 @@ async function start() {
     }
   }
   if (!worker) {
-    const { createCreatureEngine } = await import('./creature-engine.js?v=consistent-desktop-rhythm');
+    const { createCreatureEngine } = await import('./creature-engine.js?v=mobile-gray-creatures');
     fallback = createCreatureEngine(canvas, settings(), headerCanvas);
   }
   performance.mark('creatures:ready');

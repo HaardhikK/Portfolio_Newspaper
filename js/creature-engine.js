@@ -23,6 +23,7 @@ export function createCreatureEngine(canvas, settings, headerCanvas = null) {
   }
 
   function bodyPalette(definition) {
+    if (mobileLayout.matches) return ['rgba(55,55,55,0.62)'];
     const stops = definition.gradient ?? [definition.id === 'arc' ? '#a4d8bd' : definition.color];
     const rgb = stops.map(color => [1, 3, 5].map(offset => parseInt(color.slice(offset, offset + 2), 16)));
     const count = stops.length === 1 ? 1 : 32;
