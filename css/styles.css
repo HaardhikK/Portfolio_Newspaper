@@ -343,9 +343,9 @@ button { font: inherit; }
 /* keyword chips on the blog index rows */
 .post-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.7rem; }
 
-.post-row a:hover .post-title,
-.post-row a:focus-visible .post-title {
+.post-row a .post-title {
   text-decoration: underline;
+  text-decoration-thickness: 1px;
   text-underline-offset: 4px;
 }
 
@@ -577,7 +577,11 @@ button { font: inherit; }
   letter-spacing: -0.01em;
   text-decoration: none;
 }
-a.item-title:hover, a.item-title:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+a.item-title {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
 
 .item-go {
   margin-left: 0.6rem;
