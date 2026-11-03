@@ -3,8 +3,9 @@ import { BodyField, DEFORM_BANDS, smoothstep } from '../assets/vendor/alvalta/bo
 import envelopes from '../assets/vendor/alvalta/envelopes.js';
 import { createFrameClock } from './creature-clock.js';
 
-export function createCreatureEngine(canvas, settings) {
+export function createCreatureEngine(canvas, settings, headerCanvas = null) {
   const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+  const headerCtx = headerCanvas?.getContext('2d', { alpha: true, desynchronized: true });
   const reducedMotion = { matches: settings.reducedMotion };
   const mobileLayout = { matches: settings.mobile };
   let hidden = false;
@@ -74,6 +75,12 @@ export function createCreatureEngine(canvas, settings) {
     if (canvas.width !== pixelWidth) canvas.width = pixelWidth;
     if (canvas.height !== pixelHeight) canvas.height = pixelHeight;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    if (headerCanvas) {
+      const headerWidth = Math.round(next.headerWidth * ratio);
+      const headerHeight = Math.round(next.headerHeight * ratio);
+      if (headerCanvas.width !== headerWidth) headerCanvas.width = headerWidth;
+      if (headerCanvas.height !== headerHeight) headerCanvas.height = headerHeight;
+    }
     paperLeft = next.paperLeft;
     paperRight = next.paperRight;
     for (const swimmer of swimmers) {
@@ -230,6 +237,12 @@ export function createCreatureEngine(canvas, settings) {
         ctx.fillStyle = mobileLayout.matches ? swimmer.palette[band] : swimmer.brushes[band];
         ctx.fill(paths[band]);
       }
+    }
+    if (headerCtx) {
+      const ratio = canvas.width / width;
+      headerCtx.clearRect(0, 0, headerCanvas.width, headerCanvas.height);
+      headerCtx.drawImage(canvas, Math.round(settings.headerLeft * ratio), 0,
+        headerCanvas.width, headerCanvas.height, 0, 0, headerCanvas.width, headerCanvas.height);
     }
     const duration = performance.now() - started;
     metrics.frames++;

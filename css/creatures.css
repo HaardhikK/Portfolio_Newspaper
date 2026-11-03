@@ -18,7 +18,7 @@ body { background: var(--paper); }
   background: var(--paper);
   box-shadow: 0 0 0 2px var(--paper);
 }
-/* Keep the sticky name/navigation above both photos (26) and artwork (25). */
+/* Photos stay below navigation; a cropped artwork copy crosses the header. */
 .masthead { z-index: 27; }
 #creature-overlay {
   position: fixed;
@@ -27,6 +27,12 @@ body { background: var(--paper); }
   height: 100%;
   pointer-events: none;
   z-index: 25;
+}
+#creature-header-overlay {
+  position: fixed;
+  top: 0;
+  pointer-events: none;
+  z-index: 28;
 }
 
 /* Projects use spacing and section headings, without extra chips or source badges. */

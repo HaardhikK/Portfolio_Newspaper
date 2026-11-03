@@ -58,7 +58,7 @@ test('green creature starts aligned to its first target without realigning on re
   const swimmer = { definition: { id: 'arc' }, x: 0.78, y: 0.72,
     targetX: 0.2, targetY: 0.3, angle: 2.5, bodyAngle: null, palette: [] };
   const context = vm.createContext({ swimmers: [swimmer], settings: { width: 390, height: 844, mobile: false },
-    mobileLayout: {}, reducedMotion: {}, canvas: {}, ctx: { setTransform() {} },
+    mobileLayout: {}, reducedMotion: {}, canvas: {}, headerCanvas: null, ctx: { setTransform() {} },
     createFrameClock() {}, bodyPalette: () => [], pigment() {}, draw() {}, Math });
   vm.runInContext(`${resize}\nresize();`, context);
   const expected = Math.atan2((0.3 - 0.72) * 844, (0.2 - 0.78) * 390);
